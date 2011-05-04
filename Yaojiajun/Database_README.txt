@@ -5,6 +5,9 @@
 class User
 {
 	long id;
+	string email;
+	string password;
+	string nickname;
     /******Cold user data*****/
 	int age;
 	char gender;  //M for man F for female

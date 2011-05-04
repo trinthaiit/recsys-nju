@@ -104,8 +104,9 @@ ul.menu a:hover{
 
 #centercolumn{
 	float:left;
-	width:580px;
+	width:550px;
 	margin-left:30px;
+	margin-right: 30px;
 }
 
 #body{
@@ -168,7 +169,7 @@ ul.menu a:hover{
 
 #centercolumn .movie_box{
 	float: left;
-	width:170px;
+	width:160px;
 	height:auto;
 	padding:10px 10px 10px 10px;
 }
@@ -191,10 +192,132 @@ ul.menu a:hover{
 	color:#07b;
 }
 
-#centercolumn .movie_box .movie_title a:hover, #centercolumn .movie_box .movie_summary:hover{
+#centercolumn .movie_box .movie_title a:hover, #centercolumn .movie_box .movie_summary a:hover{
 	color:#E57D18;
+}
+
+#centercolumn .movie_box .movie_img img:hover{
+	box-shadow:0 0 10px #000;
+}
+
+#rightcolumn .title_bar{
+	height:30px;
+	background: rgb(215, 215, 215);
+	border-radius:5px;
+	padding:0 0 0 40px;
+	line-height: 33px;
+	font-size:13px;
+	color:#847676;
+	font-weight:bold;
+}
+
+#rightcolumn .hotmovie_list .hotmovie_box{
+	float:left;
+	height:auto;
+	padding:27px 10px 10px 10px;
+}
+
+#rightcolumn .hotmovie_list .hotmovie_box .hotmovie_label{
+	float:left;
+	color:#AAA9A5;
+	font-size:35px;
+	width:40px;
+	line-height: 140px;
+	text-align:center;
+	font-weight:bold;
+}
+
+#rightcolumn .hotmovie_list .hotmovie_box .hotmovie_image{
+	float:left;
+}
+
+#rightcolumn .hotmovie_list .hotmovie_box .hotmovie_image:hover{
+	box-shadow:0 0 10px #000;
 }
 
 .footer{
 	clear: both;
+	background-color:#333;
+	color:#9f9f9f;
+	border-top-right-radius:10px;
+	border-top-left-radius:10px;
+	height:50px;
+	text-shadow:0 1px 2px rgba(0, 0, 0, 0.3);
+	padding:10px 0;
+	text-align:center;
+	font-size:12px;
+}
+
+.footer .contact_us{
+	color:#9f9f9f;
+	text-shadow:0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+.footer .contact_us:hover{
+	color:#fff;
+}
+
+#login_box_wrapper{
+	display:none;
+}
+
+#login_box{
+	width:268px;
+	height:auto;
+	border: 1px solid #c9cacd;
+	background:#fff;
+	border-radius: 6px;
+	box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
+}
+
+#login_box .login_box_header{
+	text-align:center;
+	padding-top:10px;
+	padding-bottom: 10px;
+	border-bottom:1px solid #eee;
+}
+
+#login_box h3{
+	font-size:16px;
+	font-weight:bold;
+	text-shadow:0 1px 1px rgba(0, 0, 0, 0.3);
+	line-height:30px;
+}
+
+#login_box .login_form{
+	padding:15px 20px 30px;
+}
+
+#login_box .login_form .login_form_email{
+	background: url("../images/login_form_email.png") no-repeat;
+}
+
+#login_box .login_form input{
+	padding:5px 4px;
+	background:transparent;
+	padding-left:34px;
+	padding-right:13px;
+	border:none;
+}
+
+#login_box .login_form .login_form_password{
+	background: url("../images/login_form_password.png") no-repeat;
+}
+
+#login_box .login_form .login_form_remember{
+	line-height: 60px;
+}
+
+#login_box .login_form .login_form_submit{
+	float:right;
+	background: #58636a;
+	border-radius:4px;
+	margin-top: 20px;
+	color:#9f9f9f;
+	cursor:pointer;
+	text-align:center;
+}
+
+#login_box .login_form .login_form_submit:hover{
+	color:#fff;
 }
