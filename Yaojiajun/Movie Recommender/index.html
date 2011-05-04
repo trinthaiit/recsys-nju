@@ -285,7 +285,7 @@
 						<input type="password" name="password" id="password">
 					</p>
 					<label class="login_form_remember">
-						<input type="checkbox" name="remember" value="1">
+						<input type="checkbox" name="remember" value="1" id="checkbox">
 						Remember me
 					</label>
 					<input type="submit" value="login" class="login_form_submit">
@@ -299,11 +299,64 @@
 					<h3>Register</h3>
 				</div>
 				<form class="register_form" method="post" action="">
-					<p class="register_form_email">
+					<div class="register_form_email">
 						<h3>Email Address:</h3>
 						<input type="email" name="email" id="register_email">
-					</p>
-					
+					</div>
+					<div class="register_form_password">
+						<h3>Password:</h3>
+						<input type="password" name="password" id="register_password">
+					</div>
+					<div class="register_form_retype_password">
+						<h3>Retype Password:</h3>
+						<input type="password" name="retype_password" id="register_retype_password">
+					</div>
+					<div class="register_form_nickname">
+						<h3>Public Nickname:</h3>
+						<input type="text" name="nickname" id="register_nickname">
+					</div>
+					<div class="register_form_age">
+						<h3>Age:</h3>
+						<input type="number" name="age" id="register_age">
+					</div>
+					<div class="register_form_gender">
+						<h3>Gender:</h3>
+						<select name="Gender" id="register_gender">
+							<option value="Female">Female</option>
+							<option value="Male">Male</option>
+						</select>
+					</div>
+					<div class="register_form_occupation">
+						<h3>Occupation</h3>
+						<select name="Occupation" id="register_occupation">
+							<option value="administrator">Administrator</option>
+							<option value="artist">Artist</option>
+							<option value="doctor">Doctor</option>
+							<option value="educator">Educator</option>
+							<option value="engineer">Engineer</option>
+							<option value="entertainment">Entertainment</option>
+							<option value="executive">Executive</option>
+							<option value="healthcare">Healthcare</option>
+							<option value="homemaker">Homemaker</option>
+							<option value="lawyer">Lawyer</option>
+							<option value="librarian">Librarian</option>
+							<option value="marketing">Marketing</option>
+							<option value="none">None</option>
+							<option value="other">Other</option>
+							<option value="programmer">Programmer</option>
+							<option value="retired">Retired</option>
+							<option value="salesman">Salesman</option>
+							<option value="scientist">Scientist</option>
+							<option value="student">Student</option>
+							<option value="technician">Technician</option>
+							<option value="writer">Writer</option>
+						</select>
+					</div>
+					<div class="register_form_zipcode">
+						<h3>Zip Code:</h3>
+						<input type="text" name="zipcode" id="register_zipcode">
+					</div>
+					<input type="submit" value="Register" id="register_submit">
 				</form>
 			</div>
 		</div>

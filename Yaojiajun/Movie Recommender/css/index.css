@@ -211,6 +211,10 @@ ul.menu a:hover{
 	font-weight:bold;
 }
 
+#rightcolumn .hotmovie_list{
+	padding-left:0;
+}
+
 #rightcolumn .hotmovie_list .hotmovie_box{
 	float:left;
 	height:auto;
@@ -316,8 +320,49 @@ ul.menu a:hover{
 	color:#9f9f9f;
 	cursor:pointer;
 	text-align:center;
+	padding:4px 10px;
 }
 
 #login_box .login_form .login_form_submit:hover{
 	color:#fff;
+}
+
+#register_box_wrapper{
+	display:none;
+}
+
+#register_box{
+	width:300px;
+	height:auto;
+	border: 1px solid #c9cacd;
+	background:#fff;
+	border-radius: 6px;
+	box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
+}
+
+#register_box .register_box_header{
+	text-align:center;
+	padding-top:10px;
+	padding-bottom: 10px;
+	border-bottom:1px solid #eee;
+}
+
+#register_box .register_box_header h3{
+	font-size:16px;
+	font-weight:bold;
+	text-shadow:0 1px 1px rgba(0, 0, 0, 0.3);
+	line-height:30px;
+}
+
+#register_box .register_form div h3{
+	margin-left:5px;
+}
+
+#register_box .register_form div input{
+	display:inline;
+	margin-left:30px;
+}
+
+#register_box .register_form input{
+	margin-left:200px;
 }
