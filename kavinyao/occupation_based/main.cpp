@@ -43,7 +43,7 @@ int getRatings(char *filename, int ratings, vector<RatingInfo*> &ratingsVec);
 void transformToMap(vector<RatingInfo*> &ratingsVec, map<int, vector<RatingInfo*>*> &ratingMap);
 template <typename Iterator> void releaseRes(Iterator begin, Iterator end);
 vector<int> getRecommendedItems(map<int, vector<RatingInfo*>*> &ratingMap, vector<UserProf*> &collabGroup, int target);
-int greaterCollabItem(CollabItemInfo *ci1, CollabItemInfo *ci2);
+bool greaterCollabItem(CollabItemInfo *ci1, CollabItemInfo *ci2);
 
 int main(int argc, char **argv)
 {
@@ -261,6 +261,7 @@ vector<int> getRecommendedItems(map<int, vector<RatingInfo*>*> &ratingMap, vecto
                 tempItemInfo->item_id = tempRatingInfo->item_id;
                 tempItemInfo->collab_num = 0;
                 tempItemInfo->total_rating = 0;
+                collabItemMap[tempRatingInfo->item_id] = tempItemInfo;
             }
             else
             {
@@ -295,20 +296,26 @@ vector<int> getRecommendedItems(map<int, vector<RatingInfo*>*> &ratingMap, vecto
         count++;
     }
 
+    cout<<"Item\t\tAverage\t\tCollabNum"<<endl;
+    for(vector<CollabItemInfo*>::iterator itr5 = collabItemVec.begin();
+            itr5 != collabItemVec.end();
+            itr5++)
+    {
+        CollabItemInfo *tempItem = *itr5;
+        cout<<tempItem->item_id<<"\t\t"<<(tempItem->total_rating/tempItem->collab_num)<<"\t\t"<<tempItem->collab_num<<endl;
+    }
     //release res
     releaseRes(collabItemVec.begin(), collabItemVec.end());
 
     return results;
 }
 
-int greaterCollabItem(CollabItemInfo *ci1, CollabItemInfo *ci2)
+bool greaterCollabItem(CollabItemInfo *ci1, CollabItemInfo *ci2)
 {
     double ave1, ave2;
     ave1 = ci1->total_rating / ci1->collab_num;
     ave2 = ci2->total_rating / ci2->collab_num;
 
-    if(ave1 > ave2)
-        return 1;
-    return 0;
+    return ave1 > ave2;
 }
 
