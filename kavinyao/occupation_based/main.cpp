@@ -5,6 +5,7 @@
 
 #define TARGET_USER 926
 #define K 10
+#define COLLAB_THRESHOLD 10
 
 using namespace std;
 
@@ -279,7 +280,9 @@ vector<int> getRecommendedItems(map<int, vector<RatingInfo*>*> &ratingMap, vecto
             itr3 != collabItemMap.end();
             itr3++)
     {
-        collabItemVec.push_back(itr3->second);
+        CollabItemInfo *tempItemInfo = itr3->second;
+        if(tempItemInfo->collab_num >= COLLAB_THRESHOLD)
+            collabItemVec.push_back(tempItemInfo);
     }
     
     //sort rating
