@@ -1,3 +1,0 @@
-23	f	Comedy
-21	f	Animation
-44	F	Children
