@@ -20,7 +20,7 @@ struct item
 	 int genre[19];
 }item[1683];
 
-int user_item[462][1683]; 
+int user_item[463][1683]; 
 
 int main()
 {
@@ -33,7 +33,7 @@ int main()
 	
 
 //initial
-	for (i=0;i<462;i++)
+	for (i=0;i<463;i++)
 		for(j=0;j<1683;j++)
 			user_item[i][j] = 0;
 
@@ -132,7 +132,7 @@ int main()
 	
 	int m=0;
 	
-	for (i=0;i<462;i++)
+	for (i=1;i<463;i++)
 	{
 		int temp_genre[19];
 		int user_genre[3];
@@ -141,25 +141,22 @@ int main()
 			temp_genre[m] = 0;
 		
 		}
-		for(j=0;j<1683;j++)
+		for(j=1;j<1683;j++)
 		{
-			if (user_item[i+1][j+1]!=0)
+			if (user_item[i][j]!=0)
 			{
                 for(m=0;m<19;m++)
 				{
-                     temp_genre[m] +=item[j].genre[m];	
-					 
+                     temp_genre[m] +=item[j].genre[m];
+					 /*
+					 printf("%d    ",temp_genre[m]);
+					 scanf("%d",m);
+					 */
 				}
-				 
+				
 			}
 		}
 
-		for(m=0;m<19;m++)
-		{
-			printf("%d ",temp_genre[m] );	
-			
-		}
-		printf("\n");
 
         int max=0;
 		for(m=0;m<19;m++)
