@@ -1,0 +1,8 @@
+2011/05/14 00:28:44 [error] [exception.CHttpException.404] exception 'CHttpException' with message 'The system is unable to find the requested action "About".' in D:\Recommender System\recsys-nju\NJUMovieRecommender\framework\web\CController.php:444
+Stack trace:
+#0 D:\Recommender System\recsys-nju\NJUMovieRecommender\framework\web\CController.php(262): CController->missingAction('About')
+#1 D:\Recommender System\recsys-nju\NJUMovieRecommender\framework\web\CWebApplication.php(324): CController->run('About')
+#2 D:\Recommender System\recsys-nju\NJUMovieRecommender\framework\web\CWebApplication.php(121): CWebApplication->runController('site/About')
+#3 D:\Recommender System\recsys-nju\NJUMovieRecommender\framework\base\CApplication.php(135): CWebApplication->processRequest()
+#4 D:\Recommender System\recsys-nju\NJUMovieRecommender\index.php(13): CApplication->run()
+#5 {main} REQUEST_URI=/index.php?r=site/About
