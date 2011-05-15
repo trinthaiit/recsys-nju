@@ -6,3 +6,9 @@ Stack trace:
 #3 D:\Recommender System\recsys-nju\NJUMovieRecommender\framework\base\CApplication.php(135): CWebApplication->processRequest()
 #4 D:\Recommender System\recsys-nju\NJUMovieRecommender\index.php(13): CApplication->run()
 #5 {main} REQUEST_URI=/index.php?r=site/About
+2011/05/14 10:02:08 [error] [exception.CHttpException.404] exception 'CHttpException' with message 'Unable to resolve the request "gii".' in D:\Recommender System\recsys-nju\NJUMovieRecommender\framework\web\CWebApplication.php:328
+Stack trace:
+#0 D:\Recommender System\recsys-nju\NJUMovieRecommender\framework\web\CWebApplication.php(121): CWebApplication->runController('gii')
+#1 D:\Recommender System\recsys-nju\NJUMovieRecommender\framework\base\CApplication.php(135): CWebApplication->processRequest()
+#2 D:\Recommender System\recsys-nju\NJUMovieRecommender\index.php(13): CApplication->run()
+#3 {main} REQUEST_URI=/index.php?r=gii
