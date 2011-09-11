@@ -97,8 +97,11 @@ function extract_keywords($url){
         $result = __extract_keywords($url, $config['domain'], $config['kw']);
         if($result['keywords']){
             $keywords = urldecode($result['keywords']);
-            //if($config['charset'] === 'utf-8')
-            //    $keywords = iconv('UTF-8','gb2312//IGNORE',$keywords);
+            //remove non-ASCII characters
+            $keywords = iconv('UTF-8', 'ISO-8859-1//IGNORE', $keywords);
+            //remove special characters
+            $keywords = str_replace(array("\"", "\\", "?"), " ", $keywords);
+
             return strtolower($keywords);
         }
     }
