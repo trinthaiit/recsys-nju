@@ -9,32 +9,62 @@
  * Configurations for search engines
  */
 $engine_param_config = array(
-    "s1"=>array(
+    array(
         "domain" => "google",
         "kw" => "q",
         "charset" => "utf-8"
     ),
-    "s4"=>array(
-        "domain" => "baidu",
-        "kw" => "wd",
-        "charset" => "utf-8"
-    ),
-    "s5"=>array(
-        "domain" => "soso",
-        "kw" => "q",
-        "charset" => "utf-8"
-    ),
-    "s6"=>array(
+    array(
         "domain" => "yahoo",
         "kw" => "p",
         "charset" => "utf-8"
     ),
-    "s7"=>array(
+    array(
         "domain" => "bing",
         "kw" => "q",
         "charset" => "utf-8"
     ),
-    "s8"=>array(
+    array(
+        "domain" => "exava",
+        "kw" => "q",
+        "charset" => "utf-8"
+    ),
+    array(
+        "domain" => "thefind",
+        "kw" => "query",
+        "charset" => "utf-8"
+    ),
+    array(
+        "domain" => "yandex",
+        "kw" => "text",
+        "charset" => "utf-8"
+    ),
+    array(
+        "domain" => "soso",
+        "kw" => "q",
+        "charset" => "utf-8"
+    ),
+    array(
+        "domain" => "mywebsearch",
+        "kw" => "searchFor",
+        "charset" => "utf-8"
+    ),
+    array(
+        "domain" => "avg",
+        "kw" => "q",
+        "charset" => "utf-8"
+    ),
+    array(
+        "domain" => "reliancenetconnect",
+        "kw" => "q",
+        "charset" => "utf-8"
+    ),
+    array(
+        "domain" => "baidu",
+        "kw" => "wd",
+        "charset" => "utf-8"
+    ),
+    array(
         "domain" => "sogou",
         "kw" => "query",
         "charset" => "gbk"
@@ -45,13 +75,14 @@ $engine_param_config = array(
  * Inner function, using regex to extract keyword param.
  */
 function __extract_keywords($url, $engine='google', $param='q'){
-    $pattern = '#^http://(\w+\.)+' . $engine. '(\.\w{2,3})+/\w*\?(\w+=.*&)*' . $param . '=(?<keywords>.*?)($|(&.*$))#';
+    $pattern = '#^http://(\w+\.)*' . $engine. '(\.\w{2,3})+/.*?\?(\w+=.*?&)*' . $param . '=(?<keywords>.*?)([&\#].*)?$#';
     preg_match($pattern, $url, $matches);
 
     $result = array(
         'url' => $url, 
         'engine' => $engine
     );
+
     $result['keywords'] = isset($matches['keywords']) ? $matches['keywords'] : '';
     return $result;
 }

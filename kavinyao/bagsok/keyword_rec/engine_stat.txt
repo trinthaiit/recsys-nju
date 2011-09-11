@@ -1,0 +1,16 @@
+google 3642
+yahoo 374
+bing 314
+yandex.ru 42
+exava 10
+thefind 3
+soso 6
+mywebsearch 5
+avg 9
+reliancenetconnect 2
+baidu 4
+sougou 0
+
+others:
+google imgres
+facebook

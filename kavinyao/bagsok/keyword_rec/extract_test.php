@@ -9,21 +9,28 @@ if(!$con){
 
 mysql_select_db('bagsok');
 
-$result = mysql_query('SELECT id, keywords FROM pageflow_keywords LIMIT 1000');
+$TOTAL = 2000;
 
+$result = mysql_query("SELECT DISTINCT refer FROM userinfo LIMIT $TOTAL");
+
+$count = 0;
 if(!$result){
     die('no result available');
 }else{
+    echo '<table border="1px">';
     while($row = mysql_fetch_array($result)){
-        $search_url = $row[1];
+        $search_url = $row[0];
+        echo "<tr><td>$row[0]</td><td>";
         $keywords = extract_keywords($search_url);
         if($keywords){
-            echo "<pre>id:{$row[0]}<br/>";
-            print_r($keywords);
-            echo '</pre>';
+            $count++;
+            echo $keywords;
         }
+        echo '</td></tr>';
     }
+    echo '</table>';
 }
+echo floatval($count) / $TOTAL;
 
 mysql_close($con);
 ?>
