@@ -1,5 +1,8 @@
 <?php
 /**
+ * WARNING: this file is DEPRECATED!
+ * please use extract_keywords.php instead.
+ *
  * search engine keyword param extracing module
  * using regex
  * @author: kavinyao@gmail.com

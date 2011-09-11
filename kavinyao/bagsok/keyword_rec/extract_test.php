@@ -1,5 +1,5 @@
 <?php
-require('re_extract.php');
+require('extract_keywords.php');
 require('dbconfig.php');
 
 $con = mysql_connect($db_host , $db_user, $db_pass);
