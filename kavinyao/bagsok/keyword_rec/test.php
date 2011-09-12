@@ -1,7 +1,8 @@
 <html>
     <body>
         <?php
-        $con = mysql_connect('localhost', 'root', 'kavinyao');
+        require('dbconfig.php');
+        $con = mysql_connect($db_host, $db_user, $db_pass);
         if(!$con){
             echo 'shit' . mysql_error();
             die();
