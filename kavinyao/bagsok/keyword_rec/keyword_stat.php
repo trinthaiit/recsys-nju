@@ -19,6 +19,7 @@ $result = mysql_query("SELECT DISTINCT refer FROM userinfo WHERE refer IS NOT NU
 
 $all = 0;
 $kcount = 0;
+$number = 0;
 if(!$result){
     die('no result available');
 }else{
@@ -34,6 +35,7 @@ if(!$result){
         if(!count($keywords))
             continue;
 
+        $number += count($keywords);
         $kcount++; //inrement keyword counter
         foreach($keywords as $keyword){
             if(isset($keyword_count[$keyword]))
@@ -54,8 +56,10 @@ if(!$result){
     echo '</table>';
 }
 $keyword_num = count($keyword_count);
+$ave_num = floatval($number) / $kcount;
 echo "all keywords: {$keyword_num}<br />";
 echo "all entries: $all, entries with keywords: $kcount<br />";
+echo "average keywords per entry: $ave_num<br />";
 echo floatval($kcount) / $all;
 
 mysql_close($con);
