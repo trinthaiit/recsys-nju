@@ -2,11 +2,15 @@
 	/** preprocess the keywords extracted from the table userinfo
 	  * including : remove the stopword, extract word stem from inflected variants
 	  */
+	include "class.stemmer.inc.php";  
+	
+	$stemmer = new Stemmer();
+	
 	$stopword_list = array('for', 'of', 'in', 'it', 'online', 'is', 'on');
 	$map_dictionary = array("woman" => "women", "woman's" => "women", "women's" => "women",
 							"man" => "men", "man's" => "men", "men's" => "men",
 							"bags" => "bag");
-							
+						
 	// connect to mysql
 	ini_set("max_execution_time",2400);
 	$db = mysql_connect("localhost", "recsys-nju", "recsys-nju");
@@ -38,7 +42,8 @@
 	function preprocess_keywords($keywords){
 		global $stopword_list;
 		global $map_dictionary;
-		
+		global $stemmer;
+		$keywords = preg_replace("/[\+\/-]/", ' ', $keywords);
 		$keys = explode(" ", $keywords);
 		$result = array();
 		foreach($keys as $key){
@@ -47,6 +52,7 @@
 					$result[] = $map_dictionary[$key];
 				}
 				else{
+					$key = $stemmer->stem($key);
 					$result[] = $key;
 				}
 			}

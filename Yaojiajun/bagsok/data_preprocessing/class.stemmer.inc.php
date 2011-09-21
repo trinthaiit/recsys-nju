@@ -118,8 +118,10 @@ class Stemmer
         if ( substr($word, -2) == "'s" ) {
             $word = substr($word, 0, -2);
         }
-        $word = preg_replace("/[^a-z0-9'.-]/", '', $word);
-
+		
+		// modified by jjyao
+        $word = preg_replace("/[^a-z0-9'-.\s]/", '', $word);
+		
         $first = '';
         if ( strpos($word, '-') !== false ) {
             //list($first, $word) = explode('-', $word);
