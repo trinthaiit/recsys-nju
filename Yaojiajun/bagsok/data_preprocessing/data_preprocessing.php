@@ -2,7 +2,7 @@
 	/** preprocess the keywords extracted from the table userinfo
 	  * including : remove the stopword, extract word stem from inflected variants
 	  */
-	$stopword_list = array('for', 'of', 'in', 'it', 'online');
+	$stopword_list = array('for', 'of', 'in', 'it', 'online', 'is', 'on');
 	$map_dictionary = array("woman" => "women", "woman's" => "women", "women's" => "women",
 							"man" => "men", "man's" => "men", "men's" => "men",
 							"bags" => "bag");
