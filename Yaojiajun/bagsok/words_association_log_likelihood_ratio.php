@@ -19,32 +19,32 @@
 </html>
 
 <?php
-	if(isset($_GET['stimulus_word']) && isset($_GET['cooccurring_word'])){
-		// connect to mysql
-		ini_set("max_execution_time",2400);
-		$db = mysql_connect("localhost", "recsys-nju", "recsys-nju");
-		mysql_select_db("bagsok", $db);
+	// if(isset($_GET['stimulus_word']) && isset($_GET['cooccurring_word'])){
+		// // connect to mysql
+		// ini_set("max_execution_time",2400);
+		// $db = mysql_connect("localhost", "recsys-nju", "recsys-nju");
+		// mysql_select_db("bagsok", $db);
 		
-		$stimulus_word = $_GET['stimulus_word'];
-		$cooccurring_word = $_GET['cooccurring_word'];
-		$result = compute_ratio($stimulus_word, $cooccurring_word);
-		$non_stimulus_word = $result['residual_frequency']+$result['residual_corpus_size'];
-		$non_cooccurring_word = $result['residual_corpus_size']+$result['residual_window_size'];
-		echo "stimulus word is $stimulus_word and cooccurring word is $cooccurring_word <br>";
-		echo '<table border="1px">';
-		echo '<tr><th></th><th>cw</th><th>~cw</th><th>总计</th></tr>';
-		echo "<tr><th>sw</th><td>$result[window_frequency]</td><td>$result[residual_window_size]</td><td>$result[total_window_size]</td></tr>";
-		echo "<tr><th>~sw</th><td>$result[residual_frequency]</td><td>$result[residual_corpus_size]</td><td>$non_stimulus_word</td></tr>";
-		echo "<tr><th>总计</th><td>$result[cooccurring_word_total_frequency]</td><td>$non_cooccurring_word</td><td>$result[total_corpus_size]</td></tr>";
-		echo '</table>';
-		echo "log-likelihood ratio = $result[ratio] <br>";
+		// $stimulus_word = $_GET['stimulus_word'];
+		// $cooccurring_word = $_GET['cooccurring_word'];
+		// $result = compute_ratio($stimulus_word, $cooccurring_word);
+		// $non_stimulus_word = $result['residual_frequency']+$result['residual_corpus_size'];
+		// $non_cooccurring_word = $result['residual_corpus_size']+$result['residual_window_size'];
+		// echo "stimulus word is $stimulus_word and cooccurring word is $cooccurring_word <br>";
+		// echo '<table border="1px">';
+		// echo '<tr><th></th><th>cw</th><th>~cw</th><th>总计</th></tr>';
+		// echo "<tr><th>sw</th><td>$result[window_frequency]</td><td>$result[residual_window_size]</td><td>$result[total_window_size]</td></tr>";
+		// echo "<tr><th>~sw</th><td>$result[residual_frequency]</td><td>$result[residual_corpus_size]</td><td>$non_stimulus_word</td></tr>";
+		// echo "<tr><th>总计</th><td>$result[cooccurring_word_total_frequency]</td><td>$non_cooccurring_word</td><td>$result[total_corpus_size]</td></tr>";
+		// echo '</table>';
+		// echo "log-likelihood ratio = $result[ratio] <br>";
 		
-		//chi square test
-		$chi_square = chi_square($result['window_frequency'], $result['residual_window_size'], 
-								 $result['residual_frequency'], $result['residual_corpus_size']);
-		echo "chi_square = $chi_square <br>";
-		mysql_close($db);
-	}
+		// //chi square test
+		// $chi_square = chi_square($result['window_frequency'], $result['residual_window_size'], 
+								 // $result['residual_frequency'], $result['residual_corpus_size']);
+		// echo "chi_square = $chi_square <br>";
+		// mysql_close($db);
+	// }
 	
 	function compute_ratio($stimulus_word, $cooccurring_word){
 		$result = array();
@@ -111,6 +111,10 @@
 	
 	function query_count($sql){
 		$sql_result = mysql_query($sql);
+		if(!$sql_result){
+			echo "$sql <br>";
+			echo mysql_error() . '<br>';
+		}
 		$row = mysql_fetch_array($sql_result);
 		return $row[0];
 	}
