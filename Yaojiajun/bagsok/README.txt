@@ -1,1 +1,3 @@
 create_user.sql 是创建一个数据库用户的脚本，大家统一用一个账号，方便跑代码
+
+words_association_log_likelihood_ratio.php是实现了论文中的一种word association方法，同时里面还有一个卡方独立性检验。

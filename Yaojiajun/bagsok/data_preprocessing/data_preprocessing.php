@@ -3,7 +3,6 @@
 	  * including : remove the stopword, extract word stem from inflected variants
 	  */
 	include "class.stemmer.inc.php";  
-	
 	$stemmer = new Stemmer();
 	
 	$stopword_list = array('for', 'of', 'in', 'it', 'online', 'is', 'on');
@@ -21,7 +20,7 @@
 	while($keywords_row = mysql_fetch_array($keywords_set)){
 		$preprocessed_keywords = preprocess_keywords($keywords_row['keywords']);
 		
-		$query_sql = "UPDATE keywords_from_userinfo SET keywords = '" . addslashes(implode(" ", $preprocessed_keywords)) .
+		$query_sql = "UPDATE keywords_from_userinfo SET keywords = '" . addslashes(implode(" ", $preprocessed_keywords) . ' ') .
 					 "' WHERE id = " . $keywords_row['id'] . ";";
 		$query_result = mysql_query($query_sql);
 		if(!$query_result) { echo $query_sql; echo "<br>"; echo mysql_error(); echo "<br>"; }
