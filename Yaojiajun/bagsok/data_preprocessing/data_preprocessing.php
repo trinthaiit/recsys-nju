@@ -42,7 +42,7 @@
 		global $stopword_list;
 		global $map_dictionary;
 		global $stemmer;
-		$keywords = preg_replace("/[\+\/-]/", ' ', $keywords);
+		$keywords = preg_replace("/[\+\/-,]/", ' ', $keywords);
 		$keys = explode(" ", $keywords);
 		$result = array();
 		foreach($keys as $key){
