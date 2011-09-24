@@ -1,6 +1,7 @@
 <?php
 	include 'words_association_log_likelihood_ratio.php';
 	include 'database_manager.php';
+	error_reporting(E_ERROR | E_PARSE);
 	
 	$db = DatabaseManager::connectDB();
 	$keywords_set = mysql_query("SELECT keyword FROM keyword;");
@@ -19,7 +20,9 @@
 			$result = compute_ratio($word1, $word2);
 			$chi_square = chi_square($result['window_frequency'], $result['residual_window_size'], 
 								     $result['residual_frequency'], $result['residual_corpus_size']);
-			echo "<tr><td>$word1</td><td>$word2</td><td>$result[ratio]</td><td>$chi_square</td></tr>";
+			if($chi_square > 11){
+				echo "<tr><td>$word1</td><td>$word2</td><td>$result[ratio]</td><td>$chi_square</td></tr>";
+			}
 		}
 	}
 	echo "</table>";

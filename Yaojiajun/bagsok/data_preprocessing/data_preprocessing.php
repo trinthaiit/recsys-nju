@@ -5,7 +5,7 @@
 	include "class.stemmer.inc.php";  
 	$stemmer = new Stemmer();
 	
-	$stopword_list = array('for', 'of', 'in', 'it', 'online', 'is', 'on');
+	$stopword_list = array('for', 'of', 'in', 'it', 'online', 'is', 'on', 'and');
 	$map_dictionary = array("woman" => "women", "woman's" => "women", "women's" => "women",
 							"man" => "men", "man's" => "men", "men's" => "men",
 							"bags" => "bag");
@@ -20,7 +20,7 @@
 	while($keywords_row = mysql_fetch_array($keywords_set)){
 		$preprocessed_keywords = preprocess_keywords($keywords_row['keywords']);
 		
-		$query_sql = "UPDATE keywords_from_userinfo SET keywords = '" . addslashes(implode(" ", $preprocessed_keywords) . ' ') .
+		$query_sql = "UPDATE keywords_from_userinfo SET keywords = '" . addslashes(' ' . implode(" ", $preprocessed_keywords) . ' ') .
 					 "' WHERE id = " . $keywords_row['id'] . ";";
 		$query_result = mysql_query($query_sql);
 		if(!$query_result) { echo $query_sql; echo "<br>"; echo mysql_error(); echo "<br>"; }
@@ -42,8 +42,8 @@
 		global $stopword_list;
 		global $map_dictionary;
 		global $stemmer;
-		$keywords = preg_replace("/[\+\/-,]/", ' ', $keywords);
-		$keys = explode(" ", $keywords);
+		$keywords = preg_replace("/[,\+\/-]/", ' ', $keywords);
+		$keys = preg_split('@ @', $keywords, NULL, PREG_SPLIT_NO_EMPTY);
 		$result = array();
 		foreach($keys as $key){
 			if(!in_array($key, $stopword_list)){
@@ -52,7 +52,9 @@
 				}
 				else{
 					$key = $stemmer->stem($key);
-					$result[] = $key;
+					if($key != ''){
+						$result[] = $key;
+					}
 				}
 			}
 		}

@@ -120,7 +120,7 @@ class Stemmer
         }
 		
 		// modified by jjyao
-        $word = preg_replace("/[^a-z0-9'\"-.\s]/", '', $word);
+        $word = preg_replace("/[^a-z0-9.\-]/", '', $word);
 		
         $first = '';
         if ( strpos($word, '-') !== false ) {
