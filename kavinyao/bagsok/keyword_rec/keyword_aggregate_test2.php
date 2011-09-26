@@ -1,7 +1,7 @@
 <?php
 require('dbconfig.php');
 require('extract_keywords.php');
-require('keywords_aggregate.php');
+require('aggregate_utility.inc.php');
 
 $con = mysql_connect($db_host , $db_user, $db_pass);
 if(!$con){
