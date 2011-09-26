@@ -47,19 +47,22 @@ if(!$result){
     }
 
     arsort($keyword_occr);
-    echo '<table border="1px"><tr><th>Keywords of size 2</th><th>occurrence</th><th>ratio(=occur/max(sub_occur))</th></tr>';
+    echo '<table border="1px"><tr><th>Keywords of size 2</th><th>occurrence</th><th>ratio(=intersection/union)</th></tr>';
     foreach($all_keywords_arr as $keywords_arr){
         $subsets_2 = generate_next($keywords_arr, expand_dimension($keywords_arr)); 
         foreach($subsets_2 as $subset_2){
             $occur_2 = occurrence($subset_2, $all_keywords_arr);
             //print elements in subset_2
             echo '<tr><td>';
-            $max_elem_occr = 0;
+            //$max_elem_occr = 0;
+            $union_occur = 0;
             foreach($subset_2 as $elem){
                 echo $elem . "({$keyword_occr[$elem]}) ";
-                $max_elem_occr = max($max_elem_occr, $keyword_occr[$elem]);
+                //$max_elem_occr = max($max_elem_occr, $keyword_occr[$elem]);
+                $union_occur += $keyword_occr[$elem];
             }
-            $ratio = floatval($occur_2) / $max_elem_occr;
+            //$ratio = floatval($occur_2) / $max_elem_occr;
+            $ratio = floatval($occur_2) / ($union_occur - $occur_2);
             //print occurrence and ratio
             echo "</td><td>$occur_2</td><td>$ratio</td></tr>";
         }

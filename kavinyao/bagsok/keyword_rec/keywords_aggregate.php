@@ -3,6 +3,10 @@
  * Utilities for keyword aggregation.
  * @author: kavinyao@gmail.com
  */
+
+/**
+ * remove empty string from $str_arr
+ */
 function remove_empty($str_arr){
     $result = array();
     foreach($str_arr as $word){
@@ -13,6 +17,10 @@ function remove_empty($str_arr){
     return $result;
 }
 
+/**
+ * remove empty string from $str_arr
+ * using reference
+ */
 function remove_empty2(&$str_arr){
     foreach($str_arr as $index => $word){
         if(!$word)
@@ -20,49 +28,67 @@ function remove_empty2(&$str_arr){
     }
 }
 
-function keywords_array($kw_str){
-    $kw_arr = explode(" ", $kw_str);
-    remove_empty2($kw_arr);
-    //sort($kw_arr);
+/**
+ * split $keyword_string to keywords with delimiter given
+ */
+function keywords_array($keyword_string, $delimiter=" "){
+    $keyword_array = explode($delimiter, $keyword_string);
+    remove_empty2($keyword_array);
 
-    return $kw_arr;
+    return $keyword_array;
 }
 
-//Check if all elements in $arr_b are in $arr_a
-function array_contains($arr_a, $arr_b){
-    foreach($arr_b as $elem){
-        if(!in_array($elem, $arr_a))
+/**
+ * Check if every element in $array_b is in $array_a
+ */
+function array_contains($array_a, $array_b){
+    foreach($array_b as $elem){
+        if(!in_array($elem, $array_a))
             return false;
     }
 
     return true;
 }
 
-function occurrence($keywords_set, $all_keywords_arr){
+/**
+ * check times of occurrence of $target in $universal_set
+ * $target: array of string
+ * $universal_set: array of array of string
+ */
+function occurrence($target, $universal_set){
     $count = 0;
-    foreach($all_keywords_arr as $keywords_arr){
-        if(array_contains($keywords_arr, $keywords_set))
+    foreach($universal_set as $keywords_arr){
+        if(array_contains($keywords_arr, $target))
             $count++;
     }
 
     return $count;
 }
 
-//expand array one more dimension
-function expand_dimension($dim1arr){
+/**
+ * expand 1-dimensional array to 2-dimensional array.
+ * $dim1_array: array of dimension 1
+ */
+function expand_dimension($dim1_array){
     $expanded = array();
-    foreach($dim1arr as $elem)
+    foreach($dim1_array as $elem)
         $expanded[] = array($elem);
 
     return $expanded;
 }
 
-function generate_next($keywords_arr, $curr_arr){
+/**
+ * generate keyword set of size N+1
+ * from $size_n_sets and the $keyword_pool
+ * $keyword_pool: pool of candidate keywords
+ * $size_n_sets: keyword arrays of size N
+ */
+function generate_next($keyword_pool, $size_n_sets){
     $next = array();
-    foreach($curr_arr as $arr){
-        $diff = array_diff($keywords_arr, $arr);
-        foreach($diff as $diff_elem){
-            $temp = array_merge($arr, array($diff_elem));
+    foreach($size_n_sets as $size_n_set){
+        $difference_set = array_diff($keyword_pool, $size_n_set);
+        foreach($difference_set as $diff_elem){
+            $temp = array_merge($size_n_set, array($diff_elem));
             sort($temp);
             $next[] = $temp;
         }
