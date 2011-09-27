@@ -5,6 +5,14 @@
  */
 
 /**
+ * OMG, php only supports integer or string as array key
+ * convert keyword set to string
+ */
+function kwset_to_string($keyword_set){
+    return implode(" ", $keyword_set);
+}
+
+/**
  * remove empty string from $str_arr
  */
 function remove_empty($str_arr){
@@ -100,7 +108,7 @@ function generate_next($keyword_pool, $size_n_sets){
 /**
  * aggregate keyword sets of size n to sets of size N+1
  * returns array(
- *          set_size_n+1 => (kw_set1, kw_set2),
+ *          array(set_size_n+1, array(kw_set1, kw_set2)),
  *          ....
  * )
  */
@@ -109,11 +117,12 @@ function keyword_aggregate($keyword_sets){
     $length = count($keyword_sets);
     for($i = 0;$i < $length;$i++){
         for($j = $i+1;$j < $length;$j++){
-            $diff = array_diff($keyword_sets[$i], $keyword_sets[$j]);
-            if(count($diff) == 2){
-                $merged = array_merge($keyword_sets[$i], $diff);
+            //echo 'merging ['.kwset_to_string($keyword_sets[$i]).'] and ['.kwset_to_string($keyword_sets[$j]).']<br />';
+            $merged = array_unique(array_merge($keyword_sets[$i], $keyword_sets[$j]));
+            //my math's bad...
+            if((count($merged)*2-2) == (count($keyword_sets[$i])+count($keyword_sets[$j]))){
                 sort($merged);
-                $result[$merged] = array($keyword_sets[$i], $keyword_sets[$j]);
+                $result[] = array($merged, array($keyword_sets[$i], $keyword_sets[$j]));
             }
         }
     }
