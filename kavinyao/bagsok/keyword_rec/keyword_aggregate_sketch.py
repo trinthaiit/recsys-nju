@@ -25,5 +25,5 @@ for keyword_string, url in keywordstr_uri_mapping:
             if ration >= THRESHOLD:
                 add keyword_set, uri to database
                 candidates[] = keyword_set
-        current_generation = candidates
+        current_generation = generate_next(candidates)
 

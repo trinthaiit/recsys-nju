@@ -96,4 +96,28 @@ function generate_next($keyword_pool, $size_n_sets){
 
     return array_unique($next, SORT_REGULAR);
 }
+
+/**
+ * aggregate keyword sets of size n to sets of size N+1
+ * returns array(
+ *          set_size_n+1 => (kw_set1, kw_set2),
+ *          ....
+ * )
+ */
+function keyword_aggregate($keyword_sets){
+    $result = array();
+    $length = count($keyword_sets);
+    for($i = 0;$i < $length;$i++){
+        for($j = $i+1;$j < $length;$j++){
+            $diff = array_diff($keyword_sets[$i], $keyword_sets[$j]);
+            if(count($diff) == 2){
+                $merged = array_merge($keyword_sets[$i], $diff);
+                sort($merged);
+                $result[$merged] = array($keyword_sets[$i], $keyword_sets[$j]);
+            }
+        }
+    }
+
+    return $result;
+}
 ?>
