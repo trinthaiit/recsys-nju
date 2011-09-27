@@ -1,7 +1,7 @@
 <?php
 require('dbconfig.php');
 require('extract_keywords.php');
-require('aggregate_utility.inc.php');
+require('keywords_aggregate.php');
 
 $con = mysql_connect($db_host , $db_user, $db_pass);
 if(!$con){
@@ -58,10 +58,8 @@ if(!$result){
             $union_occur = 0;
             foreach($subset_2 as $elem){
                 echo $elem . "({$keyword_occr[$elem]}) ";
-                //$max_elem_occr = max($max_elem_occr, $keyword_occr[$elem]);
                 $union_occur += $keyword_occr[$elem];
             }
-            //$ratio = floatval($occur_2) / $max_elem_occr;
             $ratio = floatval($occur_2) / ($union_occur - $occur_2);
             //print occurrence and ratio
             echo "</td><td>$occur_2</td><td>$ratio</td></tr>";
