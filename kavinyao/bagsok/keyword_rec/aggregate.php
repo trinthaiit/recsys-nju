@@ -1,5 +1,8 @@
 <?php
 $verbose = isset($_GET['verbose']);
+$TOTAL = isset($_GET['total']) ? intval($_GET['total']) : 500;
+if($TOTAL == 0)
+    $TOTAL = 500;
 
 require('dbconfig.php');
 require('extract_keywords.php');
@@ -13,8 +16,6 @@ if(!$con){
 }
 
 mysql_select_db('bagsok');
-
-$TOTAL = 100;
 
 $result = mysql_query("SELECT id, refer FROM userinfo WHERE refer IS NOT NULL LIMIT 2000, $TOTAL");
 
