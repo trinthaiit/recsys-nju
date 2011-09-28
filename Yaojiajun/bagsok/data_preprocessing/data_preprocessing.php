@@ -5,7 +5,8 @@
 	include "class.stemmer.inc.php";  
 	$stemmer = new Stemmer();
 	
-	$stopword_list = array('for', 'of', 'in', 'it', 'online', 'is', 'on', 'and');
+	// $stopword_list = array('for', 'of', 'in', 'it', 'online', 'is', 'on', 'and', 'at', 'with');
+	$stopword_list = loadStopwords("stopword.txt");
 	$map_dictionary = array("woman" => "women", "woman's" => "women", "women's" => "women",
 							"man" => "men", "man's" => "men", "men's" => "men",
 							"bags" => "bag");
@@ -52,7 +53,8 @@
 				}
 				else{
 					$key = $stemmer->stem($key);
-					if($key != ''){
+					// remove numeric string, I'm not sure whether it is proper
+					if($key != '' && !is_numeric($key)){
 						$result[] = $key;
 					}
 				}
@@ -60,5 +62,20 @@
 		}
 		return $result;
 	}
-
+	
+	/**
+	  * load the stopword list from the file stopword.txt
+	  * return the array containing the stopwords
+	  */
+	function loadStopwords($filePath){
+		$file_handle = fopen($filePath, "r");
+		$stopwords = array();
+		while(!feof($file_handle)){
+			$line = fgets($file_handle);
+			$line = rtrim($line, "\r\n");
+			$stopwords[] = $line;
+		}
+		fclose($file_handle);
+		return $stopwords;
+	}
 ?>
