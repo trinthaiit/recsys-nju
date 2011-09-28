@@ -1,7 +1,7 @@
 ﻿<html>
 <head>
 	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" /> 
-	<title>porter stemmer</title> 
+	<title>Log Likelihood & Chi-Square</title> 
 </head>
 <body>
 	<form action="words_association_log_likelihood_ratio.php" method="get">
