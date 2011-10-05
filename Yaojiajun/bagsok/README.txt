@@ -1,3 +1,8 @@
 create_user.sql 是创建一个数据库用户的脚本，大家统一用一个账号，方便跑代码
 
+paper文件夹下面放的就是我找到的一些word association的论文
+
 words_association_log_likelihood_ratio.php是实现了论文中的一种word association方法，同时里面还有一个卡方独立性检验。
+
+apply_log_likelihood_ratio.php就是将实现的log_likelihood方法在我们的数据集上跑了一下，结果放在了apply_log_likelihood_ratio_result文件夹下
+要跑这个程序的话首先要执行create_table_keyword_sql,然后是extract_keywords_to_table.php, data_preprocessing.php,apply_log_likelihood_ratio.php.

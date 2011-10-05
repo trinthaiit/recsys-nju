@@ -16,6 +16,9 @@
 	$db = mysql_connect("localhost", "recsys-nju", "recsys-nju");
 	mysql_select_db("bagsok", $db);
 	
+	// empty table keyword
+	mysql_query("TRUNCATE table 'keyword';");
+	
 	$keywords_set = mysql_query("SELECT * FROM keywords_from_userinfo");
 	assert('$keywords_set != false');
 	while($keywords_row = mysql_fetch_array($keywords_set)){

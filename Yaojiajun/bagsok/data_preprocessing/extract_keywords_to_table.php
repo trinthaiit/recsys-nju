@@ -6,6 +6,9 @@
 	$db = mysql_connect("localhost", "recsys-nju", "recsys-nju");
 	mysql_select_db("bagsok", $db);
 	
+	// empty table keywords_from_userinfo
+	mysql_query("TRUNCATE table 'keywords_from_userinfo';");
+	
 	// fetch refer from table userinfo, extract keywords
 	$refers = mysql_query("select refer from userinfo where refer is not null and refer <> '' and refer not like '%mbaobao%'");
 	$keywords_num = 0;
