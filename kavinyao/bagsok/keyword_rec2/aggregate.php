@@ -3,14 +3,13 @@ $start_time = microtime(true);
 
 $verbose = isset($_GET['verbose']);
 $TOTAL = isset($_GET['total']) ? intval($_GET['total']) : 500;
+$THRESHOLD = isset($_GET['threshold']) ? floatval($_GET['threshold']) : 0.4;
 if($TOTAL == 0)
     $TOTAL = 500;
 
 require('dbconfig.php');
 require('extract_keywords.php');
 require('aggregate_utility.inc.php');
-
-define("THRESHOLD", 0.4);
 
 $con = mysql_connect($db_host , $db_user, $db_pass);
 if(!$con){
@@ -26,7 +25,8 @@ $query2 = "TRUNCATE TABLE keywordset_product";
 mysql_query($query1);
 mysql_query($query2);
 
-$result = mysql_query("SELECT id, url, keywords FROM pageflow_keywords WHERE keywords IS NOT NULL AND CHAR_LENGTH(keywords) > 0 ORDER BY keywords LIMIT 2000, $TOTAL");
+$result = mysql_query("SELECT id, cookie_id, url, keywords FROM pageflow_keywords WHERE keywords IS NOT NULL AND CHAR_LENGTH(keywords) > 0 ORDER BY keywords");
+$TOTAL = mysql_num_rows($result);
 
 $count = 0;
 if(!$result){
@@ -40,20 +40,32 @@ if(!$result){
 
     $all_splitted_keyword_sets = array();
     $all_rows = array(); //store rows for later iteration
+    $previous_cookie = 'thequickbrownfoxjumpsoverthelazydog';
+    $previous_keywords = 'theluckymankissesthearrogantlady';
     while($row = mysql_fetch_array($result)){
+        $current_cookie = $row['cookie_id'];
         $keyword_string = extract_keywords($row['keywords']);
         if($keyword_string){
             $count++;
             $kw_array = keywords_array($keyword_string);
             $row['keywords'] = $kw_array;
             $all_rows[] = $row;
-            $all_splitted_keyword_sets[] = $kw_array;
+            
+            //see if the keyword is from the same session
+            if($current_cookie != $previous_cookie && $keyword_string != $previous_keywords){
+                $all_splitted_keyword_sets[] = $kw_array;
+                $previous_keywords = $keyword_string;
+            }
         }
+        $previous_cookie = $current_cookie;
     }
     echo "<p>entries with keywords/total entries: $count / $TOTAL</p>";
-    echo "<p>Threshold = ".THRESHOLD."</p>";
+    echo "<p>Threshold = $THRESHOLD</p>";
 
     //STEP2: aggregate
+    $all_insert_attemps = 0; //for statistics
+    $insert_success = 0;
+
     $kwset_occur_mapping = array();
     $previous_keywords = "zsedcftgbhujmkolp"; //store previously processed results
     $previous_sets = array();                 //to avoid verbose re-processing
@@ -68,7 +80,10 @@ if(!$result){
             foreach($previous_sets as $keywordset){
                 $keywordset_string = kwset_to_string($keywordset);
                 $query = "INSERT INTO keywordset_product(keyword_set, product) VALUES('$keywordset_string', '$product')";
-                mysql_query($query);
+                $all_insert_attemps++;
+                $ret_val = mysql_query($query);
+                if($ret_val)
+                    $insert_success++;
             }
 
             continue;
@@ -121,9 +136,8 @@ if(!$result){
                     echo 'processing ['.$kwset_string.'] index = '.$jaccard_index.'<br />';
                 }
 
-                //check if index is no less than THRESHOLD
-                if($jaccard_index >= THRESHOLD){
-                    //TODO: add keyword_set, uri to databse
+                //check if index is no less than $THRESHOLD
+                if($jaccard_index >= $THRESHOLD){
                     $candidates[$kwset_string] = $keyword_set;
                     if($round_count > 1){
                         echo '<tr><td>'.$kwset_string.'</td><td>'.$intersection_length.'</td><td>'.$jaccard_index.'</td><td>'.kwset_to_string($support_sets[0]).'['.$suppset_occur1.']<br />'.kwset_to_string($support_sets[1]).'['.$suppset_occur2.']</td></tr>';
@@ -148,7 +162,10 @@ if(!$result){
         foreach($previous_sets as $keywordset){
             $keywordset_string = kwset_to_string($keywordset);
             $query = "INSERT INTO keywordset_product(keyword_set, product) VALUES('$keywordset_string', '$product')";
-            mysql_query($query);
+            $all_insert_attemps++;
+            $ret_val = mysql_query($query);
+            if($ret_val)
+                $insert_success++;
         }
         
         $previous_keywords = $current_keywords;
@@ -156,6 +173,7 @@ if(!$result){
     }
 
     mysql_query("COMMIT");
+    echo "Insert success: $insert_success / $all_insert_attemps<br/>";
 }
 
 $end_time = microtime(true);
