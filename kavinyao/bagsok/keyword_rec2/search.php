@@ -23,7 +23,13 @@ if(!$con){
 mysql_select_db('bagsok');
 
 //search part
-$searcher = new DirectKeywordSearcher();
+$searcher = new AggregatedKeywordSearcher();
+if(isset($_GET['method'])){
+    switch($_GET['method']){
+    case 'simple': $searcher = new DirectKeywordSearcher();
+    }
+}
+
 $product_weight = $searcher->getResult($keywords);
 
 //draw table

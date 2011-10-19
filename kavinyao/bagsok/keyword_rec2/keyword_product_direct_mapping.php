@@ -110,6 +110,7 @@ if(!$result){
         if(count($previous_keywords) == 0)
             continue; //avoid unnecessary insertion
 
+        //TODO hey! you forget to check whether the pair already exist in db!
         $insert_query = 'INSERT INTO m2_keyword_product (keyword, product) VALUES ';
         foreach($previous_keywords as $keyword){
             $keyword_occur[$keyword]++; //key must exist
