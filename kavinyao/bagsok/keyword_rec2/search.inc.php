@@ -76,4 +76,61 @@ class AggregatedKeywordSearcher implements iKeywordSearcher{
         return $product_weight;
     }
 }
+
+class DirectKeywordSearcher implements iKeywordSearcher{
+    private $C = 1000;
+
+    private function getRelatedProducts($keyword){
+        $select_query = "SELECT product FROM m2_keyword_product WHERE keyword = '$keyword'";
+        $result = mysql_query($select_query);
+        $products = array();
+        while($row = mysql_fetch_array($result))
+            $products[] = $row['product'];
+
+        return $products;
+    }
+
+    private function getKeywordWeight($keyword){
+        $select_query = "SELECT occurrence FROM m2_keyword WHERE keyword = '$keyword'";
+        $result = mysql_query($select_query);
+        $row = mysql_fetch_array($result);
+        $occur = $row['occurrence'];
+        $weight = log($this->C / $occur);
+
+        return $weight;
+    }
+
+    public function getResult($keywords){
+        //get related products from db
+        //TODO handle case when $keyword is not in database
+        $keyword_product_arr = array();
+        $keywrod_weight = array();
+        foreach($keywords as $keyword){
+            $keyword_product_arr[$keyword] = $this->getRelatedProducts($keyword);
+            $keyword_weight[$keyword] = $this->getKeywordWeight($keyword);
+        }
+
+        $product_weight_raw = array();
+        foreach($keyword_product_arr as $keyword => $product_arr){
+            $weight = $keyword_weight[$keyword];
+            foreach($product_arr as $product){
+                if(array_key_exists($product, $product_weight_raw))
+                    $product_weight_raw[$product] += $weight;
+                else
+                    $product_weight_raw[$product] = $weight;
+            }
+        }
+
+        $product_weight = array();
+        foreach($product_weight_raw as $product => $weight)
+            $product_weight[] = array($product, $weight);
+
+        //sort by weight descendingly
+        usort($product_weight, function($item1, $item2){
+            return $item2[1] - $item1[1];
+        });
+
+        return $product_weight;
+    }
+}
 ?>
