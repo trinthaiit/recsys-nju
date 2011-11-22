@@ -39,6 +39,11 @@ if(!$result){
 
         $search_url = $row[0];
         $keyword_str = extract_keywords($search_url);
+        
+        /* digital and punctuation filter*/
+		$keyword_str = preg_replace('/\s/',' ',preg_replace("/[[:punct:]]/",' ',strip_tags(html_entity_decode(str_replace(array('£¿','£¡','£¤','£¨','£©','£º','¡®','¡¯','¡°','¡±','¡¶','¡·','£¬','¡­','¡£','¡¢','nbsp','Â£','-'),'',$keyword_str),ENT_QUOTES,'UTF-8'))));
+		$keyword_str = preg_replace("/[0-9]/", "", $keyword_str);
+		
         $keywords = explode(' ', $keyword_str);
         $keywords = array_filter($keywords, "is_stopword");
 

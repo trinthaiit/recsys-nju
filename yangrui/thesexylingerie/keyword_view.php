@@ -20,9 +20,12 @@
 		$search_url = $row[0];
 		$keyword_str = extract_keywords($search_url);
 		
+		/* digital and punctuation filter*/
+		$keyword_str = preg_replace('/\s/',' ',preg_replace("/[[:punct:]]/",' ',strip_tags(html_entity_decode(str_replace(array('£¿','£¡','£¤','£¨','£©','£º','¡®','¡¯','¡°','¡±','¡¶','¡·','£¬','¡­','¡£','¡¢','nbsp','Â£','-'),'',$keyword_str),ENT_QUOTES,'UTF-8'))));
+		$keyword_str = preg_replace("/[0-9]/", "", $keyword_str);
+			
 		if($keyword_str != "" && $keyword_str != "sexy lingerie"){
-			$keyword_str_clean = preg_replace('/\s/',' ',preg_replace("/[[:punct:]]/",' ',strip_tags(html_entity_decode(str_replace(array('£¿','£¡','£¤','£¨','£©','£º','¡®','¡¯','¡°','¡±','¡¶','¡·','£¬','¡­','¡£','¡¢','nbsp','Â£','-'),'',$keyword_str),ENT_QUOTES,'UTF-8'))));
-			$keyword_str = preg_replace("/[0-9]/", "", $keyword_str_clean);
+			
 			echo $keyword_str."<br />";
 			$available_count++;
 		}
