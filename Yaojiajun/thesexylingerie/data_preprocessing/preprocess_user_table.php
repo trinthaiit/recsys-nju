@@ -1,6 +1,6 @@
 <?php
-	include 'extract_keywords.php';
-	include '../database_manager.php';
+	include_once 'extract_keywords.php';
+	include_once '../database_manager.php';
 	
 	$db = DatabaseManager::connectDB();
 	

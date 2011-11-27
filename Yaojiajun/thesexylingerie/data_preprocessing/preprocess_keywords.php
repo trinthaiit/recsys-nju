@@ -1,5 +1,5 @@
 <?php
-	include '../database_manager.php';
+	include_once '../database_manager.php';
 	
 	$db = DatabaseManager::connectDB();
 	
@@ -25,7 +25,7 @@
 	  */
 	function preprocess_keywords($keywords){
 		global $stopword_list;
-		$keywords = preg_replace("/[,\+\/-]/", ' ', $keywords);
+		$keywords = preg_replace("/[,&\+\/-]/", ' ', $keywords);
 		$keys = preg_split('@ @', $keywords, NULL, PREG_SPLIT_NO_EMPTY);
 		$result = array();
 		foreach($keys as $key){

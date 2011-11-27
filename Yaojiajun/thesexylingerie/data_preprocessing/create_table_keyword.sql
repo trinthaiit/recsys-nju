@@ -19,4 +19,13 @@ create table if not exists keyword(
 	unique (keyword)
 );
 
+drop table if exists keyword_product_weight;
+
+create table if not exists keyword_product_weight(
+	id bigint(20) primary key auto_increment,
+	keyword varchar(255),
+	product varchar(255),
+	weight float(20)
+);
+
 commit;
