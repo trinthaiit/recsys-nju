@@ -24,6 +24,7 @@ if(!$con){
 }
 
 mysql_select_db('thesexylingerie');
+mysql_query("delete from keyword");
 
 $result = mysql_query("SELECT DISTINCT refer FROM user WHERE refer IS NOT NULL");
 
@@ -67,15 +68,12 @@ if(!$result){
     echo '<table border="1px"><tr><th>keyword</th><th>occurrence</th></tr>';
     foreach($keyword_count as $key => $count){
         echo "<tr><td>$key</td><td>$count</td></tr>";
+        mysql_query("insert into keyword(keyword,occur) values('".$key."',".$count.")");
     }
     echo '</table>';
 }
 $keyword_num = count($keyword_count);
 $ave_num = floatval($number) / $kcount;
-echo "all keywords: {$keyword_num}<br />";
-echo "all entries: $all, entries with keywords: $kcount<br />";
-echo "average keywords per entry: $ave_num<br />";
-echo floatval($kcount) / $all;
 
 mysql_close($con);
 ?>

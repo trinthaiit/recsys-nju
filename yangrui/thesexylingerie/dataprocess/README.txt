@@ -1,0 +1,6 @@
+预处理部分：
+在运行前请确保相应的数据库表已经存在了，且正确的数据库用户已经存在了。可以查看database_manager.php文件
+preprocess_user_table.php: 用玮哥的extracct_keywords.php将refer中的关键字提取出来，将处理后的结果放在preprocessed_user表里面
+preprocess_keywords.php: 对关键字进行断词，取出stopword，将结果放在keyword表中（目前没有进行抽取词干处理）
+compute_keyword_product_weight.php: 作用如文件名所述，结果放在keyword_product_weight表中
+data_preprocess.php:将上述三个文件包装了一下，方便运行。如需运行的话只需运行该文件即可。
