@@ -53,7 +53,13 @@
 		$keywords = explode(' ', $keyword_str);
 		$keywords = array_filter($keywords, "is_stopword");
 		foreach ($keywords as $key){
-			$product = fetch_product_weight($key,mysql_num_rows(mysql_query("select distinct keyword from keyword_link")));
+			$product_temp = fetch_product_weight($key,mysql_num_rows(mysql_query("select distinct keyword from keyword_link")));
+			foreach($product_temp as $p_name => $p_weight){
+				if(isset($product[$p_name]))
+					$product[$p_name] += $p_weight*0.5;
+				else
+					$product[$p_name] = $p_weight*0.5;
+			}
 			$result = mysql_query("select distinct * from keyword_link where keyword = '".$key."'");
 			while ($row = mysql_fetch_array($result)){
 				$product_temp = fetch_product_weight($row[3],$row[4]);
@@ -72,7 +78,6 @@
 	
 	foreach($product as $p_name => $p_weight){
         echo $p_name." ".$p_weight."<br />";
-        //mysql_query("insert into keyword(keyword,occur) values('".$key."',".$count.")");
     }
 ?>
 </body>
