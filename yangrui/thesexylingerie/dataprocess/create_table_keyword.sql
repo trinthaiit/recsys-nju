@@ -28,4 +28,14 @@ create table if not exists keyword_product_weight(
 	weight float(20)
 );
 
+drop table if exists keyword_link;
+
+create table if not exists keyword_product_weight(
+	id bigint(28) primary key auto_increment,
+	keyword varchar(255),
+	count bigint(20),
+	keyword_expand varchar(255),
+	ex_count bigint(20)
+);
+
 commit;
