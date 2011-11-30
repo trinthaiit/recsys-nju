@@ -23,16 +23,16 @@
 		return true;
 	}
 	
-	function fetch_product_weight($str){
+	function fetch_product_weight($str,$key_count){
 		echo $str."<br />";
 		$product = array();
 		$result = mysql_query("select * from keyword_product_weight where keyword = '".$str."'");
 		while ($row = mysql_fetch_array($result)){
 			echo $row['product']." ".$row['weight']."<br />";
 			if(isset($product[$row['product']]))
-				$product[$row['product']] += $row['weight'];
+				$product[$row['product']] += $row['weight']/$key_count;
 			else
-				$product[$row['product']] = 0+$row['weight'];
+				$product[$row['product']] = $row['weight']/$key_count;
 		}
 		return $product;
 	}
@@ -53,10 +53,10 @@
 		$keywords = explode(' ', $keyword_str);
 		$keywords = array_filter($keywords, "is_stopword");
 		foreach ($keywords as $key){
-			$product = fetch_product_weight($key,$product);
-			$result = mysql_query("select distinct keyword_expand from keyword_link where keyword = '".$key."'");
+			$product = fetch_product_weight($key,mysql_num_rows(mysql_query("select distinct keyword from keyword_link")));
+			$result = mysql_query("select distinct * from keyword_link where keyword = '".$key."'");
 			while ($row = mysql_fetch_array($result)){
-				$product_temp = fetch_product_weight($row[0],$product);
+				$product_temp = fetch_product_weight($row[3],$row[4]);
 				foreach($product_temp as $p_name => $p_weight){
 					if(isset($product[$p_name]))
 						$product[$p_name] += $p_weight*0.5;

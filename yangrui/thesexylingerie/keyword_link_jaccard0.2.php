@@ -27,6 +27,7 @@ if(!$con){
 
 mysql_select_db('thesexylingerie');
 
+mysql_query("delet from keyword_link");
 $result = mysql_query("SELECT DISTINCT refer FROM user WHERE refer IS NOT NULL");
 
 $all = 0;
@@ -77,7 +78,7 @@ if(!$result){
 	    			$jaccard = 1;
 	    		if($jaccard > 0.2){
 	       	 		echo "<tr><td>$key</td><td>$count</td><td>$key1</td><td>$count1</td><td>$jaccard</td></tr>";
-	       	 		mysql_query("INSERT INTO keyword_link (keyword, count, keyword_expand) VALUES ('".$key."', '".$count."', '".$key1."')");
+	       	 		mysql_query("INSERT INTO keyword_link (keyword, count, keyword_expand, ex_count) VALUES ('".$key."', '".$count."', '".$key1."','".$count1."')");
 	    		}
     		}
     	}
