@@ -31,7 +31,7 @@ create table if not exists keyword_product_weight(
 drop table if exists keyword_link;
 
 create table if not exists keyword_product_weight(
-	id bigint(28) primary key auto_increment,
+	id bigint(20) primary key auto_increment,
 	keyword varchar(255),
 	count bigint(20),
 	keyword_expand varchar(255),
