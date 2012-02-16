@@ -4,6 +4,8 @@
 	
 	$db = DatabaseManager::connectDB();
 	
+	$train_factor = 0.8;
+	
 	//empty table preprocessed_user
 	DatabaseManager::query("TRUNCATE table preprocessed_user");
 	
@@ -27,7 +29,13 @@
 			}
 		}
 	}
-	echo 'keywords_num = '.$keywords_num;
+	
+	DatabaseManager::query("TRUNCATE table preprocessed_user_train");
+	DatabaseManager::query("insert into preprocessed_user_train select * from preprocessed_user where id <=".$keywords_num*$train_factor."");
+	DatabaseManager::query("TRUNCATE table preprocessed_user_test");
+	DatabaseManager::query("insert into preprocessed_user_test select * from preprocessed_user where id >".$keywords_num*$train_factor."");
+	
+	echo 'keywords_num = '.$keywords_num;	
 	
 	DatabaseManager::closeDB($db);
 	

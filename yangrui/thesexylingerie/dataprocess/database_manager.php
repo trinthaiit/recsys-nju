@@ -3,7 +3,8 @@
 		public static function connectDB(){
 			ini_set("max_execution_time",3600);
 			$db = mysql_connect("localhost", "root", "");
-			mysql_select_db("thesexylingerie", $db);
+			//mysql_select_db("thesexylingerie", $db);
+			mysql_select_db("thesexylingerie_test", $db);
 			return $db;
 		}
 		

@@ -11,7 +11,7 @@
 	    die(mysql_error());
 	}
 
-	mysql_select_db('thesexylingerie');
+	mysql_select_db('thesexylingerie_test');
 	
 	function is_stopword($str){
 		@$fp = fopen("stopwords.txt",'rb');
@@ -24,11 +24,11 @@
 	}
 	
 	function fetch_product_weight($str,$key_count){
-		echo $str."<br />";
+		//echo $str."<br />";
 		$product = array();
-		$result = mysql_query("select * from keyword_product_weight where keyword = '".$str."'");
+		$result = mysql_query("select * from keyword_product_weight_train where keyword = '".$str."'");
 		while ($row = mysql_fetch_array($result)){
-			echo $row['product']." ".$row['weight']."<br />";
+			//echo $row['product']." ".$row['weight']."<br />";
 			if(isset($product[$row['product']]))
 				$product[$row['product']] += $row['weight']/$key_count;
 			else
@@ -39,6 +39,7 @@
 	
 	$product = array();
 	$product_temp = array();
+	$key_temp = array();
 	$searchterm = trim($_POST['searchterm']);
 	if(!$searchterm){
 		echo '老大，你总得输入点东西我才能推荐啊';
@@ -53,21 +54,27 @@
 		$keywords = explode(' ', $keyword_str);
 		$keywords = array_filter($keywords, "is_stopword");
 		foreach ($keywords as $key){
-			$product_temp = fetch_product_weight($key,mysql_num_rows(mysql_query("select distinct keyword from keyword_link")));
-			foreach($product_temp as $p_name => $p_weight){
-				if(isset($product[$p_name]))
-					$product[$p_name] += $p_weight*0.5;
-				else
-					$product[$p_name] = $p_weight*0.5;
-			}
-			$result = mysql_query("select distinct * from keyword_link where keyword = '".$key."'");
-			while ($row = mysql_fetch_array($result)){
-				$product_temp = fetch_product_weight($row[3],$row[4]);
+			if(!isset($key_temp[$key])){
+				$key_temp[$key] = true;
+				$product_temp = fetch_product_weight($key,mysql_num_rows(mysql_query("select distinct keyword from keyword_link")));
 				foreach($product_temp as $p_name => $p_weight){
 					if(isset($product[$p_name]))
 						$product[$p_name] += $p_weight*0.5;
 					else
 						$product[$p_name] = $p_weight*0.5;
+				}
+				$result = mysql_query("select distinct * from keyword_link where keyword = '".$key."'");
+				while ($row = mysql_fetch_array($result)){
+					if(!isset($key_temp[$row[3]])){
+						$product_temp = fetch_product_weight($row[3],$row[4]);
+						foreach($product_temp as $p_name => $p_weight){
+							if(isset($product[$p_name]))
+								$product[$p_name] += $p_weight*0.5;
+							else
+								$product[$p_name] = $p_weight*0.5;
+						}
+						$key_temp[$row[3]] = true;
+					}
 				}
 			}
 		}

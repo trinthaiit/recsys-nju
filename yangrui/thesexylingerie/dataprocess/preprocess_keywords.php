@@ -18,6 +18,18 @@
 		}
 	}
 	
+	DatabaseManager::query("TRUNCATE table keyword_train");
+	
+	$keywords_set_train = DatabaseManager::query("SELECT id, keywords FROM preprocessed_user_train");
+	while($keywords_row_train = mysql_fetch_array($keywords_set_train)){
+		$preprocessed_keywords_train = preprocess_keywords($keywords_row_train['keywords']);
+		DatabaseManager::query("UPDATE preprocessed_user_train SET keywords = '" . addslashes(' ' . implode(" ", $preprocessed_keywords_train) . ' ') .
+						       "' WHERE id = {$keywords_row['id']}");
+		foreach($preprocessed_keywords_train as $preprocessed_keyword_train){
+			DatabaseManager::query("INSERT INTO keyword_train(keyword) VALUE('" . addslashes($preprocessed_keyword_train) . "')");
+		}
+	}
+	
 	DatabaseManager::closeDB($db);
 	
 	/**

@@ -68,7 +68,7 @@ if(!$result){
     echo '<table border="1px"><tr><th>keyword</th><th>occurrence</th></tr>';
     foreach($keyword_count as $key => $count){
         echo "<tr><td>$key</td><td>$count</td></tr>";
-        mysql_query("insert into keyword(keyword,occur) values('".$key."',".$count.")");
+        //mysql_query("insert into keyword(keyword,occur) values('".$key."',".$count.")");
     }
     echo '</table>';
 }

@@ -29,8 +29,7 @@
 		mysql_query("update user set keyword = '".$keyword_str."' where id = '".$id."'");
 		$id++;
 			
-		if($keyword_str != "" && $keyword_str != "sexy lingerie"){
-			
+		if($keyword_str != "" && $keyword_str != "sexy lingerie"){			
 			echo $keyword_str."<br />";
 			$available_count++;
 		}

@@ -4,9 +4,10 @@ set_time_limit (1000);
 require('extract_keywords.php');
 require('dbconfig.php');
 
+$train_factor = 0.8;
+
 function str_not_empty($str){
     $trimed = trim($str);
-
     return $trimed != '';
 }
 
@@ -25,10 +26,12 @@ if(!$con){
     die(mysql_error());
 }
 
-mysql_select_db('thesexylingerie');
+//mysql_select_db('thesexylingerie');
+mysql_select_db('thesexylingerie_test');
 
-mysql_query("delet from keyword_link");
-$result = mysql_query("SELECT DISTINCT refer FROM user WHERE refer IS NOT NULL");
+//mysql_query("delet from keyword_link");
+//$result = mysql_query("SELECT DISTINCT refer FROM user WHERE refer IS NOT NULL");
+$result = mysql_query("SELECT DISTINCT keywords FROM preprocessed_user_train");
 
 $all = 0;
 $kcount = 0;
@@ -40,8 +43,9 @@ if(!$result){
     while($row = mysql_fetch_array($result)){
         $all++; //increment all counter
 
-        $search_url = $row[0];
-        $keyword_str = extract_keywords($search_url);
+        //$search_url = $row[0];
+        //$keyword_str = extract_keywords($search_url);
+        $keyword_str = $row[0];
         
         /* digital and punctuation filter*/
 		$keyword_str = preg_replace('/\s/',' ',preg_replace("/[[:punct:]]/",' ',strip_tags(html_entity_decode(str_replace(array('£¿','£¡','£¤','£¨','£©','£º','¡®','¡¯','¡°','¡±','¡¶','¡·','£¬','¡­','¡£','¡¢','nbsp','Â£','-'),'',$keyword_str),ENT_QUOTES,'UTF-8'))));
@@ -67,18 +71,19 @@ if(!$result){
     arsort($keyword_count);
 
     //print results
-    echo '<table border="1px"><tr><th>keyword</th><th>keyword_expand</th><th>jaccard</th></tr>';
+    echo '<table border="1px"><tr><th>keyword</th><th>count</th><th>keyword_expand</th><th>count</th><th>jaccard</th></tr>';
     foreach($keyword_count as $key => $count){
     	foreach($keyword_count as $key1 => $count1){
-    		if($key != $key1){
-	    		$nAB = mysql_num_rows(mysql_query("select id from user where keyword like '%".$key."%".$key1."%' or keyword like '%".$key1."%".$key."%'"));
+    		if($key != $key1 && $key != null && $key1 != null){
+	    		//$nAB = mysql_num_rows(mysql_query("select id from user where keyword like '%".$key."%".$key1."%' or keyword like '%".$key1."%".$key."%'"));
+	    		$nAB = mysql_num_rows(mysql_query("select id from preprocessed_user_train where keywords like '%".$key."%".$key1."%' or keywords like '%".$key1."%".$key."%'"));
 	    		if($count + $count1 - $nAB != 0)
 	    			$jaccard = $nAB/($count + $count1 - $nAB);
 	    		else
 	    			$jaccard = 1;
 	    		if($jaccard > 0.2){
 	       	 		echo "<tr><td>$key</td><td>$count</td><td>$key1</td><td>$count1</td><td>$jaccard</td></tr>";
-	       	 		mysql_query("INSERT INTO keyword_link (keyword, count, keyword_expand, ex_count) VALUES ('".$key."', '".$count."', '".$key1."','".$count1."')");
+	       	 		mysql_query("INSERT INTO keyword_link VALUES ('".$key."', '".$count."', '".$key1."','".$count1."','".$jaccard."')");
 	    		}
     		}
     	}
