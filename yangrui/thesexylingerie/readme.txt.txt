@@ -15,3 +15,5 @@
 2012/2/16
 一个手动的测试版本,初步感觉thesexylingerie.com那份数据还不如bagsok,具体原因我马上报告跟进。
 
+2012/2/17
+主要更新 hit_rate_detection.php

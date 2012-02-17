@@ -37,55 +37,71 @@
 		return $product;
 	}
 	
-	$product = array();
+	/*$product = array();
 	$product_temp = array();
 	$key_temp = array();
 	$searchterm = trim($_POST['searchterm']);
 	if(!$searchterm){
 		echo '老大，你总得输入点东西我才能推荐啊';
 		exit;
-	}
+	}*/
 	
-	if(!get_magic_quotes_gpc()){
-		$searchterm = addslashes($searchterm);
-		$keyword_str = preg_replace('/\s/',' ',preg_replace("/[[:punct:]]/",' ',strip_tags(html_entity_decode(str_replace(array('？','！','￥','（','）','：','‘','’','“','”','《','》','，','…','。','、','nbsp','拢','-'),'',$searchterm),ENT_QUOTES,'UTF-8'))));
-		$keyword_str = preg_replace("/[0-9]/", "", $keyword_str);
-		
-		$keywords = explode(' ', $keyword_str);
-		$keywords = array_filter($keywords, "is_stopword");
-		foreach ($keywords as $key){
-			if(!isset($key_temp[$key])){
-				$key_temp[$key] = true;
-				$product_temp = fetch_product_weight($key,mysql_num_rows(mysql_query("select distinct keyword from keyword_link")));
-				foreach($product_temp as $p_name => $p_weight){
-					if(isset($product[$p_name]))
-						$product[$p_name] += $p_weight*0.5;
-					else
-						$product[$p_name] = $p_weight*0.5;
-				}
-				$result = mysql_query("select distinct * from keyword_link where keyword = '".$key."'");
-				while ($row = mysql_fetch_array($result)){
-					if(!isset($key_temp[$row[3]])){
-						$product_temp = fetch_product_weight($row[3],$row[4]);
-						foreach($product_temp as $p_name => $p_weight){
-							if(isset($product[$p_name]))
-								$product[$p_name] += $p_weight*0.5;
-							else
-								$product[$p_name] = $p_weight*0.5;
+	function recommendation_list($searchterm){
+		$product = array();
+		$product_temp = array();
+		$key_temp = array();
+			
+		if(!get_magic_quotes_gpc()){
+			$searchterm = addslashes($searchterm);
+			$keyword_str = preg_replace('/\s/',' ',preg_replace("/[[:punct:]]/",' ',strip_tags(html_entity_decode(str_replace(array('？','！','￥','（','）','：','‘','’','“','”','《','》','，','…','。','、','nbsp','拢','-'),'',$searchterm),ENT_QUOTES,'UTF-8'))));
+			$keyword_str = preg_replace("/[0-9]/", "", $keyword_str);
+			
+			$keywords = explode(' ', $keyword_str);
+			$keywords = array_filter($keywords, "is_stopword");
+			foreach ($keywords as $key){
+				if(!isset($key_temp[$key])){
+					$key_temp[$key] = true;
+					$product_temp = fetch_product_weight($key,mysql_num_rows(mysql_query("select distinct keyword from keyword_link")));
+					foreach($product_temp as $p_name => $p_weight){
+						if(isset($product[$p_name]))
+							$product[$p_name] += $p_weight*0.5;
+						else
+							$product[$p_name] = $p_weight*0.5;
+					}
+					$result = mysql_query("select distinct * from keyword_link where keyword = '".$key."'");
+					while ($row = mysql_fetch_array($result)){
+						if(!isset($key_temp[$row[3]])){
+							$product_temp = fetch_product_weight($row[3],$row[4]);
+							foreach($product_temp as $p_name => $p_weight){
+								if(isset($product[$p_name]))
+									$product[$p_name] += $p_weight*0.5;
+								else
+									$product[$p_name] = $p_weight*0.5;
+							}
+							$key_temp[$row[3]] = true;
 						}
-						$key_temp[$row[3]] = true;
 					}
 				}
 			}
 		}
+		
+		//echo "<br />recommand list:<br />";
+		arsort($product);
+		
+		/*foreach($product as $p_name => $p_weight){
+	        echo $p_name." ".$p_weight."<br />";
+	    }*/
+	    
+	    return $product;
 	}
 	
-	echo "<br />recommand list:<br />";
-	arsort($product);
+	/*$searchterm = trim($_POST['searchterm']);
+	if(!$searchterm){
+		echo '老大，你总得输入点东西我才能推荐啊';
+		exit;
+	}
 	
-	foreach($product as $p_name => $p_weight){
-        echo $p_name." ".$p_weight."<br />";
-    }
+	recommendation_list($searchterm);*/
 ?>
 </body>
 </html>

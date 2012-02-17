@@ -4,8 +4,6 @@ set_time_limit (1000);
 require('extract_keywords.php');
 require('dbconfig.php');
 
-$train_factor = 0.8;
-
 function str_not_empty($str){
     $trimed = trim($str);
     return $trimed != '';
