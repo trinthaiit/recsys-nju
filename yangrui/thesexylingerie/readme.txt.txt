@@ -23,3 +23,13 @@
 目前没有采用比较正规的方法（尝试了下MAE，结果很不好看），只是先看了看我们推荐的列表（对于测试用户集）其中有商品会被浏览的概率。
 目前来看，在测试数据很有限的情况下(特别是当我把训练集的比例提高到0.9之后，依然有将近一半的概率测试用户会去浏览训练用户没有浏览过的页面，而这些页面是永远不可能被推荐的)，命中率我感觉还不错。
 在没有新数据到位的情况下，我这接着会尝试把系统转移到bagsok上去，再尝试做做测试。
+
+2012/2/21
+主要更新 文件精简
+temp与backup中均属无用文件。
+整个系统的测试流程
+1.运行最初的thesexylingerie.sql;
+2.运行dataprocess文件夹下的create_table_keyword.sql;
+3.运行dataprocess文件夹下的data_preprocess.php（训练用户所占比例可通过修改preprocess_user_table.php的train_factor参数）;
+4.运行keyword_link_jaccard0.2.php;
+5.运行hit_rate_detection.php查看hit_rate结果;

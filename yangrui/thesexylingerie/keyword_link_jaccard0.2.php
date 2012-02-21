@@ -1,5 +1,10 @@
 <?php
+/**
+ * 此文件完成计算历史数据库中单词的关联度 并将达到threshold的相关keyword写入keyword_link表的功能
+ * threshold可自由设定
+ */
 set_time_limit (1000);
+$threshold = 0.2;
 
 require('extract_keywords.php');
 require('dbconfig.php');
@@ -19,6 +24,8 @@ function is_stopword($str){
 	return true;
 }
 
+
+
 $con = mysql_connect($db_host , $db_user, $db_pass);
 if(!$con){
     die(mysql_error());
@@ -29,6 +36,7 @@ mysql_select_db('thesexylingerie_test');
 
 //mysql_query("delet from keyword_link");
 //$result = mysql_query("SELECT DISTINCT refer FROM user WHERE refer IS NOT NULL");
+mysql_query("truncate keyword_link");
 $result = mysql_query("SELECT DISTINCT keywords FROM preprocessed_user_train");
 
 $all = 0;
@@ -79,7 +87,8 @@ if(!$result){
 	    			$jaccard = $nAB/($count + $count1 - $nAB);
 	    		else
 	    			$jaccard = 1;
-	    		if($jaccard > 0.2){
+	    		//if($jaccard > 0.2){
+	    		if($jaccard > $threshold){
 	       	 		echo "<tr><td>$key</td><td>$count</td><td>$key1</td><td>$count1</td><td>$jaccard</td></tr>";
 	       	 		mysql_query("INSERT INTO keyword_link VALUES ('".$key."', '".$count."', '".$key1."','".$count1."','".$jaccard."')");
 	    		}
@@ -88,12 +97,5 @@ if(!$result){
     }
     echo '</table>';
 }
-$keyword_num = count($keyword_count);
-$ave_num = floatval($number) / $kcount;
-//echo "all keywords: {$keyword_num}<br />";
-//echo "all entries: $all, entries with keywords: $kcount<br />";
-//echo "average keywords per entry: $ave_num<br />";
-//echo floatval($kcount) / $all;
-
 mysql_close($con);
 ?>

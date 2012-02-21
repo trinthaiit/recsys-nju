@@ -10,7 +10,6 @@
 	if(!$con){
 	    die(mysql_error());
 	}
-
 	mysql_select_db('thesexylingerie_test');
 	
 	function is_stopword($str){
@@ -23,6 +22,13 @@
 		return true;
 	}
 	
+	/**
+	 * 
+	 * 对于拆出的以及扩展的单个keyword 从权重表中获取原始权重值
+	 * 除以关键字频数后得到相对权重值 返回商品相对权重数组
+	 * @param string $str
+	 * @param int $key_count
+	 */
 	function fetch_product_weight($str,$key_count){
 		//echo $str."<br />";
 		$product = array();
@@ -37,15 +43,11 @@
 		return $product;
 	}
 	
-	/*$product = array();
-	$product_temp = array();
-	$key_temp = array();
-	$searchterm = trim($_POST['searchterm']);
-	if(!$searchterm){
-		echo '老大，你总得输入点东西我才能推荐啊';
-		exit;
-	}*/
-	
+	/**
+	 * 
+	 * 对于任意输入字符串 返回排序后的商品最终权重列表
+	 * @param string $searchterm
+	 */
 	function recommendation_list($searchterm){
 		$product = array();
 		$product_temp = array();
@@ -83,25 +85,11 @@
 					}
 				}
 			}
-		}
-		
-		//echo "<br />recommand list:<br />";
+		}	
 		arsort($product);
-		
-		/*foreach($product as $p_name => $p_weight){
-	        echo $p_name." ".$p_weight."<br />";
-	    }*/
-	    
 	    return $product;
 	}
 	
-	/*$searchterm = trim($_POST['searchterm']);
-	if(!$searchterm){
-		echo '老大，你总得输入点东西我才能推荐啊';
-		exit;
-	}
-	
-	recommendation_list($searchterm);*/
 ?>
 </body>
 </html>
