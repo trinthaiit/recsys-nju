@@ -33,3 +33,6 @@ temp与backup中均属无用文件。
 3.运行dataprocess文件夹下的data_preprocess.php（训练用户所占比例可通过修改preprocess_user_table.php的train_factor参数）;
 4.运行keyword_link_jaccard0.2.php;
 5.运行hit_rate_detection.php查看hit_rate结果;
+
+2012/2/23
+修正了命中率计算的一个重大错误，新的结果已上传。
