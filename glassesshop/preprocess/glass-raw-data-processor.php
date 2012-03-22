@@ -25,7 +25,8 @@
 		}
 
 		private function __fill_query_table(){
-			$querys = $this->dm->query("SELECT userid, refer FROM user WHERE refer IS NOT NULL AND refer <> '' AND refer <> 'null'");
+			$this->dm->query("BEGIN");
+			$querys = $this->dm->query("SELECT userid, refer FROM user WHERE refer IS NOT NULL AND refer <> '' AND refer <> 'null'");			
 			while($row = mysql_fetch_array($querys)){
 				$keyword_string = $this->qe->extractQuery($row['refer'], $this->delimiter);
 				if($keyword_string != ""){
@@ -33,21 +34,25 @@
 					$this->dm->query($insert_sql);				
 				}
 			}
+			$this->dm->query("COMMIT");
 		}
 
 		private function __fill_item_table(){
-			$items = $this->dm->query("SELECT pageinfo FROM visit WHERE pagetype = 'product'");
+			$this->dm->query("BEGIN");
+			$items = $this->dm->query("SELECT pageinfo FROM visit WHERE pagetype = 'product'");			
 			while($row = mysql_fetch_array($items)){
 				$insert_sql = "INSERT INTO Item (id) VALUES ('{$row['pageinfo']}')";
 				$this->dm->query($insert_sql, true);
 			}
+			$this->dm->query("COMMIT");
 		}
 
 		private function __fill_query_item_table(){
-			$querys = $this->dm->query("SELECT id, userId FROM Query");
+			$this->dm->query("BEGIN");
+			$querys = $this->dm->query("SELECT id, userId FROM Query");			
 			while($row = mysql_fetch_array($querys)){
 				$userId = $row['userId'];
-				$items = $this->dm->query("SELECT pageinfo FROM visit WHERE userId = '{$userId}' AND pagetype = 'product'");
+				$items = $this->dm->query("SELECT pageinfo FROM visit WHERE pagetype = 'product' AND userId = '{$userId}'");
 				while($item_row = mysql_fetch_array($items)){
 					$orders = $this->dm->query("SELECT count(id) FROM orderrecord WHERE userid = '{$userId}' AND item = '{$item_row['pageinfo']}'");
 					$order_num = mysql_fetch_array($orders);
@@ -62,6 +67,7 @@
 					$this->dm->query($insert_sql);
 				}
 			}
+			$this->dm->query("COMMIT");
 		}
 	}
 ?>
