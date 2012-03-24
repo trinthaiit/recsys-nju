@@ -13,7 +13,6 @@
 		public function preprocess($tables, $startTime=null){
 			
 			$word_segmenter = new WordSegmenter();
-			//$glass_DB_manager = GlassDatabaseManager::getInstance();
 			$this->dm->executeSqlFile("rec_tables.sql");
 					
 			/* Construct the keyword and keyword_item_weight table */
@@ -68,7 +67,9 @@
 				}
 			}	
 			arsort($product);
+			echo "<br />------------------------------------------------------------<br />";
 			print_r($product);
+			echo "<br />------------------------------------------------------------<br />";
 		    return $product;
     	}
 

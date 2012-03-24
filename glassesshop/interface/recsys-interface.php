@@ -18,7 +18,7 @@ interface iDatabaseManager {
  * - so on
  */
 interface iQueryExtractor {
-    /*
+    /**
      * @param $url : a string of url
      * @return : a $delimiter-separated keyword string or empty string when no query
      *   could be extracted
@@ -95,23 +95,23 @@ interface iKeywordRecommenderSystem {
      * @return : True indicates no error; False else
      * TODO: is the replacement semantic reasonable?
      */
-    public function addRecommender($name, $weight, $recommender);
+    public function addRecommender($recommender, $factor = '');
 
     /**
-     * Adjust the weight of recommender of given $name to $weight.
+     * Adjust the weight array of recommender of given $name to $weight.
      * @return : True indicates no error; False else
      */
-    public function adjustWeight($name, $newWeight);
+    public function adjustWeight($recommender, $keywords= '', $weightArray = '', $factor = '');
 
     /**
      * Remove the recommender of given $name.
      * @return : True indicates no error; False else
      */
-    public function removeRecommender($name);
+    public function removeRecommender($recommender);
 
     /**
      * Similar to that of iRecommender interface.
      */
-    public function recommend($keywords);
+    public function recommend($recommender, $keywords);
 }
 ?>

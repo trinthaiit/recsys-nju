@@ -16,6 +16,11 @@ create table if not exists Keyword_Item_Weight(
 	weight float(10)
 );
 
-
+create table if not exists Keyword_Link(
+	id bigint(10) primary key auto_increment,
+	keyword varchar(255) not null,
+	keyword_expand varchar(255) not null,
+	link float(10)
+);
 
 commit;
