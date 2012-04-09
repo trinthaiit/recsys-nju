@@ -1,8 +1,7 @@
 begin;
 
 drop table if exists oso_user_ratings;
-drop table if exists Keyword;
-drop table if exists Keyword_Link;
+drop table if exists oso_slope_one;
 
 CREATE TABLE IF NOT EXISTS oso_user_ratings (
 user_id int(11) NOT NULL, item_id int(11) NOT NULL, rating decimal(14,4) NOT NULL default '0.0000', KEY item_id (item_id), KEY user_id (user_id,item_id)

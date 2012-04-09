@@ -225,11 +225,16 @@ class OpenSlopeOne
      */
     public function getRecommendedItemsByUser($userId, $limit = 20)
     {
-        $sql = 'select s.item_id2 from oso_slope_one s,oso_user_ratings u where u.user_id = '
+        $sql = 'select s.item_id2,sum(u.rating * s.times - s.rating)/sum(s.times) from oso_slope_one s,oso_user_ratings u where u.user_id = '
              . $userId
              . ' and s.item_id1 = u.item_id and s.item_id2 != u.item_id group by s.item_id2 order by sum(u.rating * s.times - s.rating)/sum(s.times) desc limit '
              . $limit;
-         return  $this->_db->fetchCol($sql);
+         //return  $this->_db->fetchCol($sql);
+         $results = mysql_query($sql);
+         while($row = mysql_fetch_array($results)){
+         	$weightArray[$row[0]] = $row[1];
+         }
+         return $weightArray;
     }
 }
 ?>

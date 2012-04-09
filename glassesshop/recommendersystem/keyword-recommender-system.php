@@ -3,6 +3,7 @@
 	include_once "../database/glass-database-manager.php";
 	include_once "word-segmenter.php";
 	include_once "keyword-recommender.php";
+	include_once "./OpenSlopeOne.php";
 	
 	define("KEY_LINK_JACCARD",1);
 	define("KEY_COL_SLOPEONE",2);
@@ -50,7 +51,7 @@
 			 $this->dm->query("COMMIT");
 		}
 		
-		public function collaborativeFilteringWithSlopeOne(){
+		public function collaborativeFilteringWithSlopeOnePreprocess(){
 			$this->dm->executeSqlFile("col_table.sql");
 			
 			$item = array();
@@ -60,15 +61,18 @@
 			while($item_row = mysql_fetch_array($item_results)){
 				$item[$item_row['name']] = $item_row['id'];
 			}
-			$user_results = mysql_query("select * from keyword");
+			$user_results = $this->dm->query("select * from keyword");
 			while($user_row = mysql_fetch_array($user_results)){
 				$user[$user_row['keyword']] = $user_row['id'];
 			}
 			
-			$pair_results = mysql_query("select * from keyword_item_weight");
+			$pair_results = $this->dm->query("select * from keyword_item_weight");
 			while($pair_row = mysql_fetch_array($pair_results)){
-				mysql_query("insert into oso_user_ratings values(".$user[$pair_row['keyword']].",".$item[$pair_row['name']].",".$pair_row['weight'].")");
+				$this->dm->query("insert into oso_user_ratings values(".$user[$pair_row['keyword']].",".$item[$pair_row['item']].",".$pair_row['weight'].")");
 			}
+			
+			$openslopeone = new OpenSlopeOne();
+			$openslopeone->initSlopeOneTable('MySQL');
 		}
 		
 		public function addRecommender($recommender, $factor){
@@ -102,9 +106,36 @@
 				}
 				arsort($weightArray);
 				echo "<br />------------------------------------------------------------<br />";
-				print_r($weightArray);
+				//print_r($weightArray);
 				echo "<br />------------------------------------------------------------<br />";
 				return $weightArray;				
+			}
+			else if($recommender == KEY_COL_SLOPEONE){
+				$user_results = $this->dm->query("select * from keyword");
+				while($user_row = mysql_fetch_array($user_results)){
+					$user[$user_row['keyword']] = $user_row['id'];
+				}
+				$item_results = $this->dm->query("select * from item");
+				while($item_row = mysql_fetch_array($item_results)){
+					$item[$item_row['id']] = $item_row['name'];
+				}
+				$keywords = array_unique(explode(' ', $keywords));
+				$openslopeone = new OpenSlopeOne();
+		
+				foreach ($keywords as $key){
+					$weightArrayTemp = $openslopeone->getRecommendedItemsByUser($user[$key]);
+					foreach($weightArrayTemp as $p_name => $p_weight){
+						if(isset($weightArray[$item[$p_name]]))
+							$weightArray[$item[$p_name]] += $p_weight*$factor;
+						else
+							$weightArray[$item[$p_name]] = $p_weight*$factor;
+					}
+				}
+				arsort($weightArray);
+				echo "<br />------------------------------------------------------------<br />";
+				//print_r($weightArray);
+				echo "<br />------------------------------------------------------------<br />";
+				return $weightArray;
 			}
 	    }
 	
@@ -121,9 +152,17 @@
 	
 	    public function recommend($keywords){
 	    	$weightArray = $this->re->recommend($keywords);
-	    	if($this->KEY_LINK > 0){	
-	    		return $this->makeCombineRecList(1,$keywords,$weightArray,$this->KEY_LINK);
-	    	}	
+	    	if($this->KEY_LINK > 0 && $this->KEY_COL <= 0){	
+	    		$weightArray = $this->makeCombineRecList(KEY_LINK_JACCARD,$keywords,$weightArray,$this->KEY_LINK);
+	    	}
+	    	if($this->KEY_COL > 0 && $this->KEY_LINK <= 0){
+	    		$weightArray = $this->makeCombineRecList(KEY_COL_SLOPEONE,$keywords,$weightArray,$this->KEY_COL);
+	    	}
+	    	if($this->KEY_COL > 0 && $this->KEY_LINK > 0){
+	    		$weightArray = $this->makeCombineRecList(KEY_LINK_JACCARD,$keywords,$weightArray,$this->KEY_LINK);
+	    		$weightArray = $this->makeCombineRecList(KEY_COL_SLOPEONE,$keywords,$weightArray,$this->KEY_COL);
+	    	}
+	    	return $weightArray;	
 	    }
 	    
 	    public function fetch_expand_key($str){
