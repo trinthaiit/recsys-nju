@@ -16,7 +16,7 @@
 			$this->dm->executeSqlFile("rec_tables.sql");
 					
 			/* Construct the keyword and keyword_item_weight table */
-			$query_results = $this->dm->query("select query from query");
+			$query_results = $this->dm->query("select query from ".$tables['query']."");
 			$keyword_count = array();
 			while($query_row = mysql_fetch_array($query_results)){
 				$keywords = $word_segmenter->segmentWords($query_row['query']);
@@ -31,9 +31,9 @@
 			foreach ($keyword_count as $key => $key_count) {
 				$this->dm->query("insert into Keyword (keyword, count) values('".$key."', ".$key_count." )");
 				$this->dm->query("CREATE OR REPLACE VIEW queryids AS
-								SELECT DISTINCT id FROM query WHERE query LIKE '%{$key}%'");
+								SELECT DISTINCT id FROM ".$tables['query']." WHERE query LIKE '%{$key}%'");
 				$this->dm->query("CREATE OR REPLACE VIEW visit_count (item, count) AS
-								SELECT itemId, count(itemId) FROM query_item WHERE queryId IN
+								SELECT itemId, count(itemId) FROM ".$tables['query_item']." WHERE queryId IN
 								(SELECT DISTINCT id FROM queryids) GROUP BY itemId");
 				
 				$weight_results = $this->dm->query("SELECT visit_count.item item, visit_count.count visit_count FROM visit_count");

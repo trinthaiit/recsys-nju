@@ -16,7 +16,7 @@
 			$this->re = new KeywordRecommender();
 		}
 		
-		public function wordAssociationWithJaccardPreprocess($threshold){
+		public function wordAssociationWithJaccardPreprocess($threshold,$tables){
 			$this->dm->query("BEGIN");
 			$this->dm->query("truncate keyword_link");
 			$result = $this->dm->query("SELECT keyword,count FROM keyword where count > 1");
@@ -31,7 +31,7 @@
 			    foreach($keyword_count as $key => $count){
 			    	foreach($keyword_count as $key1 => $count1){
 			    		if($key != $key1 && $key != null && $key1 != null){
-				    		$nAB = mysql_num_rows($this->dm->query("select id from query where query like '%".$key."%".$key1."%' or query like '%".$key1."%".$key."%'"));
+				    		$nAB = mysql_num_rows($this->dm->query("select id from ".$tables['query']." where query like '%".$key."%".$key1."%' or query like '%".$key1."%".$key."%'"));
 				    		if($count + $count1 - $nAB != 0)
 				    			$jaccard = $nAB/($count + $count1 - $nAB);
 				    		else

@@ -2,6 +2,7 @@ begin;
 
 drop table if exists Keyword_Item_Weight;
 drop table if exists Keyword;
+drop table if exists Keyword_Link;
 
 create table if not exists Keyword(
 	id bigint(10) primary key auto_increment,
