@@ -11,7 +11,9 @@ create table if not exists Query(
 );
 
 create table if not exists Item(
-	id varchar(255) primary key
+	id bigint(10) primary key auto_increment,
+	name varchar(255) not null,
+	unique(name)
 );
 
 create table if not exists Query_Item(
@@ -20,7 +22,7 @@ create table if not exists Query_Item(
 	bought int(5), -- 0 stands for visit 1 stands for add to shopcart 2 stands for buy
 	primary key (queryId, itemId),
 	foreign key (queryId) references Query(id),
-	foreign key (itemId) references Item(id)
+	foreign key (itemId) references Item(name)
 );
 
 

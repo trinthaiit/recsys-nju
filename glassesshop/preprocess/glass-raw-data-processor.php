@@ -41,7 +41,7 @@
 			$this->dm->query("BEGIN");
 			$items = $this->dm->query("SELECT pageinfo FROM visit WHERE pagetype = 'product'");			
 			while($row = mysql_fetch_array($items)){
-				$insert_sql = "INSERT INTO Item (id) VALUES ('{$row['pageinfo']}')";
+				$insert_sql = "INSERT INTO Item (name) VALUES ('{$row['pageinfo']}')";
 				$this->dm->query($insert_sql, true);
 			}
 			$this->dm->query("COMMIT");
