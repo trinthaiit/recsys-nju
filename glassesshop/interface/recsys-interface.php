@@ -95,7 +95,7 @@ interface iKeywordRecommenderSystem {
      * @return : True indicates no error; False else
      * TODO: is the replacement semantic reasonable?
      */
-    public function addRecommender($recommender, $factor = '');
+    public function addRecommender($recommender, $factor);
 
     /**
      * Adjust the weight array of recommender of given $name to $weight.
@@ -112,6 +112,6 @@ interface iKeywordRecommenderSystem {
     /**
      * Similar to that of iRecommender interface.
      */
-    public function recommend($recommender, $keywords);
+    public function recommend($keywords);
 }
 ?>

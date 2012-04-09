@@ -44,8 +44,6 @@
 									'{$weight_row['item']}', '{$weight}')");
 				}
 			}
-
-			
 		}
 		
     	public function recommend($keywords){

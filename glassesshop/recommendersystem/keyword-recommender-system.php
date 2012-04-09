@@ -10,10 +10,14 @@
 	class KeywordRecommenderSystem implements iKeywordRecommenderSystem{
 		private $dm;
 		private $re;
+		private $KEY_LINK;
+		private $KEY_COL;
 		
 		public function __construct(){
 			$this->dm = GlassDatabaseManager::getInstance();
 			$this->re = new KeywordRecommender();
+			$this->KEY_COL = 0;
+			$this->KEY_LINK = 0;
 		}
 		
 		public function wordAssociationWithJaccardPreprocess($threshold,$tables){
@@ -46,22 +50,45 @@
 			 $this->dm->query("COMMIT");
 		}
 		
-		public function collaborativeFilteringWithSlopeOne($table_name){
+		public function collaborativeFilteringWithSlopeOne(){
+			$this->dm->executeSqlFile("col_table.sql");
 			
+			$item = array();
+			$user = array();
+			
+			$item_results = $this->dm->query("select * from item");
+			while($item_row = mysql_fetch_array($item_results)){
+				$item[$item_row['name']] = $item_row['id'];
+			}
+			$user_results = mysql_query("select * from keyword");
+			while($user_row = mysql_fetch_array($user_results)){
+				$user[$user_row['keyword']] = $user_row['id'];
+			}
+			
+			$pair_results = mysql_query("select * from keyword_item_weight");
+			while($pair_row = mysql_fetch_array($pair_results)){
+				mysql_query("insert into oso_user_ratings values(".$user[$pair_row['keyword']].",".$item[$pair_row['name']].",".$pair_row['weight'].")");
+			}
 		}
 		
-		public function addRecommender($recommender, $factor = ''){
+		public function addRecommender($recommender, $factor){
 			if($recommender == KEY_LINK_JACCARD){
-				KeywordRecommenderSystem::wordAssociationWithJaccardPreprocess($factor);
+				//KeywordRecommenderSystem::wordAssociationWithJaccardPreprocess(0.2);
+				$this->KEY_LINK = $factor;
 			}
 			else if($recommender == KEY_COL_SLOPEONE){
-				KeywordRecommenderSystem::collaborativeFilteringWithSlopeOne($factor);
+				//KeywordRecommenderSystem::collaborativeFilteringWithSlopeOne();
+				$this->KEY_COL = $factor;
 			}
 			else
 				;
 		}
+		
+		 public function adjustWeight($recommender, $keywords= '', $weightArray = '', $factor = ''){
+		 	
+		 }
 	
-	    public function adjustWeight($recommender, $keywords= '', $weightArray = '', $factor = ''){
+	    public function makeCombineRecList($recommender, $keywords= '', $weightArray = '', $factor = ''){
 	    	if($recommender == KEY_LINK_JACCARD){
 				$expand_keywords = KeywordRecommenderSystem::fetch_expand_key($keywords);
 				foreach ($expand_keywords as $expand_key) {
@@ -82,13 +109,20 @@
 	    }
 	
 	    public function removeRecommender($name){
-	    	
+	    	if($recommender == KEY_LINK_JACCARD){
+				$this->KEY_LINK = 0;
+			}
+			else if($recommender == KEY_COL_SLOPEONE){
+				$this->KEY_COL = 0;
+			}
+			else
+				;
 	    }
 	
-	    public function recommend($recommender, $keywords){
-	    	if($recommender == KEY_LINK_JACCARD){
-	    		$weightArray = $this->re->recommend($keywords);
-	    		$this->adjustWeight(1,$keywords,$weightArray,0.001);
+	    public function recommend($keywords){
+	    	$weightArray = $this->re->recommend($keywords);
+	    	if($this->KEY_LINK > 0){	
+	    		return $this->makeCombineRecList(1,$keywords,$weightArray,$this->KEY_LINK);
 	    	}	
 	    }
 	    

@@ -12,8 +12,8 @@
 	$tables['query_item'] = "query_item";
 	$test_recommend = new KeywordRecommender();
 	//$test_recommend->preprocess($tables);
-	//$test_recommend->recommend($keywords);
-	
 	$test_recommender_sys = new KeywordRecommenderSystem();
-	$test_recommender_sys->wordAssociationWithJaccardPreprocess(0.2,$tables);// 0.2 is the jaccard factor
-	//$test_recommender_sys->recommend(KEY_LINK_JACCARD, $keywords);
+	//$test_recommender_sys->wordAssociationWithJaccardPreprocess(0.2,$tables);// 0.2 is the jaccard factor
+	
+	$test_recommender_sys->addRecommender(KEY_LINK_JACCARD, 0.001);
+	$list = $test_recommender_sys->recommend($keywords);
