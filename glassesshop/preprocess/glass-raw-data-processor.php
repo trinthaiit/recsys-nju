@@ -67,7 +67,7 @@
 						$bought = 0;
 					}
 					$insert_sql = "INSERT INTO Query_Item (queryId, itemId, bought) VALUES ({$row['id']}, '{$item_row['pageinfo']}', {$bought})";
-					$this->dm->query($insert_sql);
+					$this->dm->query($insert_sql, true);
 				}
 			}
 			$this->dm->query("COMMIT");
