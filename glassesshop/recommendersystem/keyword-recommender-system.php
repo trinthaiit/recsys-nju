@@ -54,7 +54,7 @@
 		}
 		
 		public function collaborativeFilteringWithSlopeOnePreprocess(){
-			$this->dm->executeSqlFile("col_table.sql");
+			$this->dm->executeSqlFile(__DIR__ . "\col_table.sql");
 			
 			$item = array();
 			$user = array();

@@ -20,7 +20,7 @@
 		public function run(){
 			//$this->rawDataProcessor->processRawData();
 			//$this->build_train_and_test_set();
-			//$this->train();
+			$this->train();
 			$this->test(10);
 		}
 
@@ -53,15 +53,16 @@
 		}
 
 		public function train(){
-			$tables = array();
-			$tables['query'] = 'query_train';
-			$tables['query_item'] = 'query_item';
-			$this->recommender->preprocess($tables);
-			$this->system->wordAssociationWithJaccardPreprocess(0.2, $tables);
+			// $tables = array();
+			// $tables['query'] = 'query_train';
+			// $tables['query_item'] = 'query_item';
+			// $this->recommender->preprocess($tables);
+			// $this->system->wordAssociationWithJaccardPreprocess(0.2, $tables);
+			$this->system->collaborativeFilteringWithSlopeOnePreprocess();
 		}
 
 		public function test($topN){
-			$this->system->addRecommender(KEY_LINK_JACCARD, 0.001);
+			$this->system->addRecommender(KEY_COL_SLOPEONE, 0.001);
 			// compute hits rate
 			$test_num = 0;
 			$hits = 0;

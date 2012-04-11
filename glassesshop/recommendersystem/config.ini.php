@@ -2,7 +2,7 @@
 [database]
 host                 = localhost
 username             = root
-password             = 
+password             = yaojiajun
 dbname               = glassesshop
 port                 = 3306
 adapter              = PDO_MYSQL ; PDO_MYSQL or MYSQLI

@@ -87,7 +87,7 @@ class OpenSlopeOne
      *
      * @param string $configIniFile
      */
-    public function initConfig($configIniFile = './config.ini.php')
+    public function initConfig($configIniFile = 'config.ini.php')
     {
         $this->_config = parse_ini_file($configIniFile);
     }
