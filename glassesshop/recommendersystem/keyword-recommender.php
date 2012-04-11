@@ -13,7 +13,7 @@
 		public function preprocess($tables, $startTime=null){
 			
 			$word_segmenter = new WordSegmenter();
-			$this->dm->executeSqlFile("rec_tables.sql");
+			$this->dm->executeSqlFile( __DIR__ . "/rec_tables.sql");
 					
 			/* Construct the keyword and keyword_item_weight table */
 			$query_results = $this->dm->query("select query from ".$tables['query']."");
@@ -29,7 +29,8 @@
 				}
 			}
 			foreach ($keyword_count as $key => $key_count) {
-				$this->dm->query("insert into Keyword (keyword, count) values('".$key."', ".$key_count." )");
+				$key = addslashes($key);
+				$this->dm->query("insert into Keyword (keyword, count) values('". $key ."', ".$key_count." )");
 				$this->dm->query("CREATE OR REPLACE VIEW queryids AS
 								SELECT DISTINCT id FROM ".$tables['query']." WHERE query LIKE '%{$key}%'");
 				$this->dm->query("CREATE OR REPLACE VIEW visit_count (item, count) AS
@@ -65,9 +66,9 @@
 				}
 			}	
 			arsort($product);
-			echo "<br />------------------------------------------------------------<br />";
-			print_r($product);
-			echo "<br />------------------------------------------------------------<br />";
+			// echo "<br />------------------------------------------------------------<br />";
+			// print_r($product);
+			// echo "<br />------------------------------------------------------------<br />";
 		    return $product;
     	}
 

@@ -26,6 +26,6 @@ create table if not exists Query_Item(
 );
 
 
-create index visit_userid on visit (userid, pagetype) using btree;
+-- create index visit_userid on visit (userid, pagetype) using btree;
 
 commit;

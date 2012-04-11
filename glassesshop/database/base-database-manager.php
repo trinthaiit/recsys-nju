@@ -26,10 +26,10 @@
 
 		public function query($query_string, $ignore_duplicate_error = false){
 			$result = mysql_query($query_string);
-			/*if(!$result){
+			if(!$result){
 				if(mysql_errno() != 1062 || (mysql_errno() == 1062 && !ignore_duplicate_error))
 					die($query_string . "<br />" . mysql_error() . "<br />");
-			}*/
+			}
 			return $result;
 		}
 		

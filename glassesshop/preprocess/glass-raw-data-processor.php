@@ -21,7 +21,7 @@
 		}
 
 		private function __generate_tables(){
-			$this->dm->executeSqlFile("tables.sql");
+			$this->dm->executeSqlFile(__DIR__ . "/tables.sql");
 		}
 
 		private function __fill_query_table(){
@@ -29,6 +29,9 @@
 			$querys = $this->dm->query("SELECT userid, refer FROM user WHERE refer IS NOT NULL AND refer <> '' AND refer <> 'null'");			
 			while($row = mysql_fetch_array($querys)){
 				$keyword_string = $this->qe->extractQuery($row['refer'], $this->delimiter);
+				$keyword_string = str_replace(array('\\', '/', '\''), '', $keyword_string);
+				// $keyword_string = mysql_real_escape_string($keyword_string);
+
 				if($keyword_string != ""){
 					$insert_sql = "INSERT INTO Query (userId, query) VALUES ('{$row['userid']}', '{$keyword_string}')";
 					$this->dm->query($insert_sql);				

@@ -3,7 +3,7 @@
 	include_once "../database/glass-database-manager.php";
 	include_once "word-segmenter.php";
 	include_once "keyword-recommender.php";
-	include_once "./OpenSlopeOne.php";
+	include_once "OpenSlopeOne.php";
 	
 	define("KEY_LINK_JACCARD",1);
 	define("KEY_COL_SLOPEONE",2);
@@ -36,6 +36,8 @@
 			    foreach($keyword_count as $key => $count){
 			    	foreach($keyword_count as $key1 => $count1){
 			    		if($key != $key1 && $key != null && $key1 != null){
+			    			// $key = mysql_real_escape_string($key);
+			    			// $key1 = mysql_real_escape_string($key1);
 				    		$nAB = mysql_num_rows($this->dm->query("select id from ".$tables['query']." where query like '%".$key."%".$key1."%' or query like '%".$key1."%".$key."%'"));
 				    		if($count + $count1 - $nAB != 0)
 				    			$jaccard = $nAB/($count + $count1 - $nAB);
@@ -105,9 +107,9 @@
 					}
 				}
 				arsort($weightArray);
-				echo "<br />------------------------------------------------------------<br />";
-				//print_r($weightArray);
-				echo "<br />------------------------------------------------------------<br />";
+				// echo "<br />------------------------------------------------------------<br />";
+				// //print_r($weightArray);
+				// echo "<br />------------------------------------------------------------<br />";
 				return $weightArray;				
 			}
 			else if($recommender == KEY_COL_SLOPEONE){
@@ -132,9 +134,9 @@
 					}
 				}
 				arsort($weightArray);
-				echo "<br />------------------------------------------------------------<br />";
-				//print_r($weightArray);
-				echo "<br />------------------------------------------------------------<br />";
+				// echo "<br />------------------------------------------------------------<br />";
+				// //print_r($weightArray);
+				// echo "<br />------------------------------------------------------------<br />";
 				return $weightArray;
 			}
 	    }

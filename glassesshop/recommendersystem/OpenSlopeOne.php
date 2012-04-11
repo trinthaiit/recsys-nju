@@ -10,7 +10,7 @@
  * @license GPL V3 
  */
 
-set_include_path('./inc');
+set_include_path(__DIR__ . '/inc');
 
 require_once 'Zend/Db.php';
 require_once 'Zend/Loader.php';

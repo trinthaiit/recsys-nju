@@ -6,13 +6,12 @@
 		private $stopwords;
 
 		public function __construct(){
-			$this->stopwords = $this->__load_stopwords("stopword.txt");
+			$this->stopwords = $this->__load_stopwords(__DIR__ . "/stopword.txt");
 		}
 
 		public function extractQuery($url, $delimiter = " "){
 			mb_internal_encoding('UTF-8');
 			$keyword_string = mb_strtolower($this->__extract_keywords($url));
-			$keyword_string = addslashes($keyword_string);
 			if($keyword_string != ''){
 				// has query
 				$preprocessed_keywords = $this->__preprocess_keyword_string($keyword_string);
