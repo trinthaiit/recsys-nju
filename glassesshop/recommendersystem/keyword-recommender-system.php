@@ -13,12 +13,22 @@
 		private $re;
 		private $KEY_LINK;
 		private $KEY_COL;
+		private $user;
+		private $item;
 		
 		public function __construct(){
 			$this->dm = GlassDatabaseManager::getInstance();
 			$this->re = new KeywordRecommender();
 			$this->KEY_COL = 0;
 			$this->KEY_LINK = 0;
+			$user_results = $this->dm->query("select * from keyword");
+			while($user_row = mysql_fetch_array($user_results)){
+				$this->user[$user_row['keyword']] = $user_row['id'];
+			}
+			$item_results = $this->dm->query("select * from item");
+			while($item_row = mysql_fetch_array($item_results)){
+				$this->item[$item_row['id']] = $item_row['name'];
+			}
 		}
 		
 		public function wordAssociationWithJaccardPreprocess($threshold,$tables){
@@ -113,24 +123,20 @@
 				return $weightArray;				
 			}
 			else if($recommender == KEY_COL_SLOPEONE){
-				$user_results = $this->dm->query("select * from keyword");
-				while($user_row = mysql_fetch_array($user_results)){
-					$user[$user_row['keyword']] = $user_row['id'];
-				}
-				$item_results = $this->dm->query("select * from item");
-				while($item_row = mysql_fetch_array($item_results)){
-					$item[$item_row['id']] = $item_row['name'];
-				}
 				$keywords = array_unique(explode(' ', $keywords));
 				$openslopeone = new OpenSlopeOne();
 		
 				foreach ($keywords as $key){
-					$weightArrayTemp = $openslopeone->getRecommendedItemsByUser($user[$key]);
-					foreach($weightArrayTemp as $p_name => $p_weight){
-						if(isset($weightArray[$item[$p_name]]))
-							$weightArray[$item[$p_name]] += $p_weight*$factor;
-						else
-							$weightArray[$item[$p_name]] = $p_weight*$factor;
+					if(key_exists($key, $this->user)){
+						$weightArrayTemp = $openslopeone->getRecommendedItemsByUser($this->user[$key]);
+						if($weightArrayTemp != NULL){
+							foreach($weightArrayTemp as $p_name => $p_weight){
+								if(isset($weightArray[$this->item[$p_name]]))
+									$weightArray[$this->item[$p_name]] += $p_weight*$factor;
+								else
+									$weightArray[$this->item[$p_name]] = $p_weight*$factor;
+							}
+						}
 					}
 				}
 				arsort($weightArray);

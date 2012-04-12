@@ -231,10 +231,15 @@ class OpenSlopeOne
              . $limit;
          //return  $this->_db->fetchCol($sql);
          $results = mysql_query($sql);
-         while($row = mysql_fetch_array($results)){
-         	$weightArray[$row[0]] = $row[1];
+         $weightArray = array();
+         if($results){
+	         while($row = mysql_fetch_array($results)){
+	         	$weightArray[$row[0]] = $row[1];
+	         }
+        	 return $weightArray;
          }
-         return $weightArray;
+         else
+         	return NULL;
     }
 }
 ?>

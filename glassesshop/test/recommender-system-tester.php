@@ -20,7 +20,7 @@
 		public function run(){
 			//$this->rawDataProcessor->processRawData();
 			//$this->build_train_and_test_set();
-			$this->train();
+			//$this->train();
 			$this->test(10);
 		}
 
@@ -53,12 +53,12 @@
 		}
 
 		public function train(){
-			// $tables = array();
-			// $tables['query'] = 'query_train';
-			// $tables['query_item'] = 'query_item';
-			// $this->recommender->preprocess($tables);
-			// $this->system->wordAssociationWithJaccardPreprocess(0.2, $tables);
-			$this->system->collaborativeFilteringWithSlopeOnePreprocess();
+			$tables = array();
+			$tables['query'] = 'query_train';
+			$tables['query_item'] = 'query_item';
+			//$this->recommender->preprocess($tables);
+			//$this->system->wordAssociationWithJaccardPreprocess(0.2, $tables);
+			//$this->system->collaborativeFilteringWithSlopeOnePreprocess();
 		}
 
 		public function test($topN){
@@ -70,7 +70,7 @@
 			while($query_row = mysql_fetch_array($query_result)){
 				$test_num++;
 				$items = $this->system->recommend($query_row['query']);
-				print_r($items);
+				//print_r($items);
 				$recommendedItems = array_slice($items, 0, $topN);
 				foreach($recommendedItems as $item => $weight){
 					$result = $this->dm->query("select * from query_test, query_item where query_test.id = query_item.queryId AND 
@@ -80,6 +80,9 @@
 						break;
 					}
 				}
+				echo $test_num."<br />";
+				flush();
+				ob_flush();
 			}
 
 			$percentage = $hits/$test_num;
