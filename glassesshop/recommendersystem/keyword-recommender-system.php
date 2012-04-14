@@ -31,62 +31,6 @@
 			}
 		}
 		
-		public function wordAssociationWithJaccardPreprocess($threshold,$tables){
-			$this->dm->query("BEGIN");
-			$this->dm->query("truncate keyword_link");
-			$result = $this->dm->query("SELECT keyword,count FROM keyword where count > 1");
-			$keyword_count = array();
-			
-			if(!$result){
-			    die('no result available');
-			}else{
-				while($row = mysql_fetch_array($result)){
-					$keyword_count[$row['keyword']] = $row['count']; 
-				}
-			    foreach($keyword_count as $key => $count){
-			    	foreach($keyword_count as $key1 => $count1){
-			    		if($key != $key1 && $key != null && $key1 != null){
-			    			// $key = mysql_real_escape_string($key);
-			    			// $key1 = mysql_real_escape_string($key1);
-				    		$nAB = mysql_num_rows($this->dm->query("select id from ".$tables['query']." where query like '%".$key."%".$key1."%' or query like '%".$key1."%".$key."%'"));
-				    		if($count + $count1 - $nAB != 0)
-				    			$jaccard = $nAB/($count + $count1 - $nAB);
-				    		else
-				    			$jaccard = 1;
-				    		if($jaccard > $threshold){
-				       	 		$this->dm->query("INSERT INTO keyword_link(keyword, keyword_expand, link) VALUE ('".$key."', '".$key1."','".$jaccard."')");
-				    		}
-			    		}
-			    	}
-			    }
-			 }
-			 $this->dm->query("COMMIT");
-		}
-		
-		public function collaborativeFilteringWithSlopeOnePreprocess(){
-			$this->dm->executeSqlFile(__DIR__ . "\col_table.sql");
-			
-			$item = array();
-			$user = array();
-			
-			$item_results = $this->dm->query("select * from item");
-			while($item_row = mysql_fetch_array($item_results)){
-				$item[$item_row['name']] = $item_row['id'];
-			}
-			$user_results = $this->dm->query("select * from keyword");
-			while($user_row = mysql_fetch_array($user_results)){
-				$user[$user_row['keyword']] = $user_row['id'];
-			}
-			
-			$pair_results = $this->dm->query("select * from keyword_item_weight");
-			while($pair_row = mysql_fetch_array($pair_results)){
-				$this->dm->query("insert into oso_user_ratings values(".$user[$pair_row['keyword']].",".$item[$pair_row['item']].",".$pair_row['weight'].")");
-			}
-			
-			$openslopeone = new OpenSlopeOne();
-			$openslopeone->initSlopeOneTable('MySQL');
-		}
-		
 		public function addRecommender($recommender, $factor){
 			if($recommender == KEY_LINK_JACCARD){
 				//KeywordRecommenderSystem::wordAssociationWithJaccardPreprocess(0.2);
@@ -147,7 +91,7 @@
 			}
 	    }
 	
-	    public function removeRecommender($name){
+	    public function removeRecommender($recommender){
 	    	if($recommender == KEY_LINK_JACCARD){
 				$this->KEY_LINK = 0;
 			}

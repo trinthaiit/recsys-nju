@@ -13,10 +13,10 @@
 	$test_recommend = new KeywordRecommender();
 	//$test_recommend->preprocess($tables);
 	$test_recommender_sys = new KeywordRecommenderSystem();
-	//$test_recommender_sys->wordAssociationWithJaccardPreprocess(0.2,$tables);// 0.2 is the jaccard factor
-	//$test_recommender_sys->collaborativeFilteringWithSlopeOnePreprocess();
+	//$test_recommend->wordAssociationWithJaccardPreprocess(0.2,$tables);// 0.2 is the jaccard factor
+	//$test_recommend->collaborativeFilteringWithSlopeOnePreprocess();
 	
 	$test_recommender_sys->addRecommender(KEY_COL_SLOPEONE, 0.001);
-	$test_recommender_sys->addRecommender(KEY_LINK_JACCARD, 0.001);
+	//$test_recommender_sys->addRecommender(KEY_LINK_JACCARD, 0.00000001);
 	$list = $test_recommender_sys->recommend($keywords);
 	print_r($list);
