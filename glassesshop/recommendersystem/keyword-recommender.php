@@ -3,12 +3,27 @@
 	include_once "../database/glass-database-manager.php";
 	include_once "word-segmenter.php";
 	include_once "OpenSlopeOne.php";
+		
+	define("KEY_LINK_JACCARD",1);
+	define("KEY_COL_SLOPEONE",2);
 	
 	class KeywordRecommender implements iKeywordRecommender{
 		private $dm;
+		private $name;
+		private $user;
+		private $item;
 		
-		public function __construct(){
+		public function __construct($name = ''){
 			$this->dm = GlassDatabaseManager::getInstance();
+			$this->name = $name;
+			$user_results = $this->dm->query("select * from keyword");
+			while($user_row = mysql_fetch_array($user_results)){
+				$this->user[$user_row['keyword']] = $user_row['id'];
+			}
+			$item_results = $this->dm->query("select * from item");
+			while($item_row = mysql_fetch_array($item_results)){
+				$this->item[$item_row['id']] = $item_row['name'];
+			}
 		}
 		
 		public function preprocess($tables, $startTime=null){
@@ -104,29 +119,72 @@
 			$openslopeone->initSlopeOneTable('MySQL');
 		}
 		
-    	public function recommend($keywords){
-    		$product = array();
-			$product_temp = array();
-				
-			if(!get_magic_quotes_gpc()){
-				$keywords = addslashes($keywords);		
-				$keywords = array_unique(explode(' ', $keywords));
-				
-				foreach ($keywords as $key){
-					$product_temp = KeywordRecommender::fetch_product_weight($key);
-					foreach($product_temp as $p_name => $p_weight){
-						if(isset($product[$p_name]))
-							$product[$p_name] += $p_weight;
+		public function makeCombineRecList($keywords){
+			$weightArray = array();
+			
+	    	if($this->name == KEY_LINK_JACCARD){
+				$expand_keywords = KeywordRecommender::fetch_expand_key($keywords);
+				foreach ($expand_keywords as $expand_key) {
+					$expand_weight = KeywordRecommender::fetch_product_weight($expand_key);
+					foreach($expand_weight as $p_name => $p_weight){
+						if(isset($weightArray[$p_name]))
+							$weightArray[$p_name] += $p_weight;
 						else
-							$product[$p_name] = $p_weight;
+							$weightArray[$p_name] = $p_weight;
 					}
 				}
-			}	
-			arsort($product);
-			// echo "<br />------------------------------------------------------------<br />";
-			// print_r($product);
-			// echo "<br />------------------------------------------------------------<br />";
-		    return $product;
+				arsort($weightArray);
+				// echo "<br />------------------------------------------------------------<br />";
+				// //print_r($weightArray);
+				// echo "<br />------------------------------------------------------------<br />";
+				return $weightArray;				
+			}
+			else if($this->name == KEY_COL_SLOPEONE){
+				$keywords = array_unique(explode(' ', $keywords));
+				$openslopeone = new OpenSlopeOne();
+		
+				foreach ($keywords as $key){
+					if(key_exists($key, $this->user)){
+						$weightArrayTemp = $openslopeone->getRecommendedItemsByUser($this->user[$key]);
+						if($weightArrayTemp != NULL){
+							foreach($weightArrayTemp as $p_name => $p_weight){
+								if(isset($weightArray[$this->item[$p_name]]))
+									$weightArray[$this->item[$p_name]] += $p_weight;
+								else
+									$weightArray[$this->item[$p_name]] = $p_weight;
+							}
+						}
+					}
+				}
+				arsort($weightArray);
+				// echo "<br />------------------------------------------------------------<br />";
+				// //print_r($weightArray);
+				// echo "<br />------------------------------------------------------------<br />";
+				return $weightArray;
+			}
+			else{	
+				if(!get_magic_quotes_gpc()){
+					$keywords = addslashes($keywords);		
+					$keywords = array_unique(explode(' ', $keywords));
+					
+					foreach ($keywords as $key){
+						$product_temp = KeywordRecommender::fetch_product_weight($key);
+						foreach($product_temp as $p_name => $p_weight){
+							if(isset($weightArray[$p_name]))
+								$weightArray[$p_name] += $p_weight;
+							else
+								$weightArray[$p_name] = $p_weight;
+						}
+					}
+					arsort($weightArray);
+					return $weightArray;
+				}
+			}
+	    }
+		
+    	public function recommend($keywords){
+    		
+		    return KeywordRecommender::makeCombineRecList($keywords);
     	}
 
     	public function cleanup(){
@@ -134,6 +192,24 @@
     		$this->dm->query("delete from keyword");
     		
     	}
+    	
+		public function fetch_expand_key($str){
+	    	$this->dm->query("BEGIN");
+	    	$keywords = array_unique(explode(' ', $str));
+	    	$expand_keywords = array();
+	    	foreach ($keywords as $key){
+	    		$expand_results = $this->dm->query("select keyword_expand from keyword_link where keyword = '".$key."'");
+	    		while($expand_row = mysql_fetch_array($expand_results)){
+	    			if(!in_array($expand_row[0], $keywords))
+	    				$expand_keywords[] = $expand_row[0];
+	    		}
+	    	}
+	    	$expand_keywords = array_unique($expand_keywords);
+	    	$this->dm->query("COMMIT");
+	    	//print_r($expand_keywords);
+	    	echo "<br />";
+	    	return $expand_keywords;
+	    }
 
     	public function fetch_product_weight($str){
     		

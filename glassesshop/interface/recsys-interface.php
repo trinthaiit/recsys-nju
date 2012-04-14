@@ -95,13 +95,13 @@ interface iKeywordRecommenderSystem {
      * @return : True indicates no error; False else
      * TODO: is the replacement semantic reasonable?
      */
-    public function addRecommender($recommender, $factor);
+    public function addRecommender($name, $weight, $recommender);
 
     /**
      * Adjust the weight array of recommender of given $name to $weight.
      * @return : True indicates no error; False else
      */
-    public function adjustWeight($recommender, $keywords= '', $weightArray = '', $factor = '');
+    public function adjustWeight($name, $newWeight);
 
     /**
      * Remove the recommender of given $name.
