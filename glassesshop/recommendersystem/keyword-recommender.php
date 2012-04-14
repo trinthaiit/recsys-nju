@@ -16,6 +16,11 @@
 		public function __construct($name = ''){
 			$this->dm = GlassDatabaseManager::getInstance();
 			$this->name = $name;
+			if($name == KEY_COL_SLOPEONE)
+				$this->loadUserItem();	
+		}
+		
+		public function loadUserItem(){
 			$user_results = $this->dm->query("select * from keyword");
 			while($user_row = mysql_fetch_array($user_results)){
 				$this->user[$user_row['keyword']] = $user_row['id'];
