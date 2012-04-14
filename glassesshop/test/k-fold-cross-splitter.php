@@ -1,0 +1,80 @@
+<?php
+	include_once "../database/glass-database-manager.php";
+
+	class KFoldCrossSplitter{
+		private $dm;
+		private $k;
+		private $iteration_count;
+		private $folds;
+
+		public function __construct(){
+			$this->dm = GlassDatabaseManager::getInstance();
+			$this->iteration_count = 0;
+
+			// you can change the following param
+			$this->k = 10;
+		}
+
+		public function start_split(){
+			echo "KFoldCrossSplitter start_split start.....<br/>";
+			flush();
+			ob_flush();
+			$time_start = microtime(true);
+
+			$query_result = $this->dm->query("SELECT * FROM query");
+			$all_query = array();
+			while($all_query[] = mysql_fetch_assoc($query_result));
+			array_pop($all_query); // pop the last 'false' result
+			assert('array_size($all_query) == mysql_num_rows($query_result)');
+
+			$shuffle_reuslt = shuffle($all_query);
+			assert('$shuffle_reuslt == true');
+
+			$this->folds = array_chunk($all_query, round(array_size($all_query) / $this->k));
+			assert('array_size($this->folds) == $this->k');
+
+			$time_end = microtime(true);
+			$cost_time = $time_end - $time_start;
+			echo 'KFoldCrossSplitter start_split end......<br/>';
+			echo "KFoldCrossSplitter cost time: $cost_time <br/>";
+			flush();
+			ob_flush();
+		}
+
+		public function end_split(){
+
+		}
+
+		public function split(){
+			$this->iteration_count++;
+			assert('$this->iteration_count <= $this->k');
+
+			//prepare database tables
+			$this->dm->query("drop table if exists query_train");
+			$this->dm->query("create table query_train like query");
+			$this->dm->query("drop table if exists query_test");
+			$this->dm->query("create table query_test like query");
+
+			// now $this->iteration_count - 1 is test set, others is train set
+			for($i = 0; $i < $this->k; $i++){
+				if($i == $this->iteration_count - 1){
+					$table = 'query_test';
+				}
+				else{
+					$table = 'query_train';
+				}
+				foreach($this->folds[$i] as $query){
+					$this->dm->query("INSERT INTO {$table}(id, userId, query) VALUES 
+									({$query['id']}, '{$query['userId']}', '{$query['query']}')");
+				}
+			}
+
+			if($this->iteration_count == $this->k){
+				return false; // no more iteration
+			}
+			else{
+				return true; // still has iterations
+			}
+		}
+	}
+?>

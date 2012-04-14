@@ -25,7 +25,6 @@ create table if not exists Query_Item(
 	foreign key (itemId) references Item(name)
 );
 
-
 -- create index visit_userid on visit (userid, pagetype) using btree;
 
 commit;

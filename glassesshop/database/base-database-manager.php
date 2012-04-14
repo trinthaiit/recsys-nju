@@ -5,7 +5,7 @@
 		private $connect;
 
 		public function connect($host = "localhost", $username = "root", $password = "") {
-			ini_set("max_execution_time",3600);
+			ini_set("max_execution_time",36000);
 
 			$this->connect = mysql_connect($host, $username, $password);
 			if(!$this->connect){
