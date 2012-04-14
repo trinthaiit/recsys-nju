@@ -12,12 +12,12 @@
 		private $name;
 		private $user;
 		private $item;
+		private $lock;
 		
 		public function __construct($name = ''){
 			$this->dm = GlassDatabaseManager::getInstance();
 			$this->name = $name;
-			if($name == KEY_COL_SLOPEONE)
-				$this->loadUserItem();	
+			$this->lock = false;
 		}
 		
 		public function loadUserItem(){
@@ -145,6 +145,9 @@
 				return $weightArray;				
 			}
 			else if($this->name == KEY_COL_SLOPEONE){
+				if($this->lock == false)
+					$this->loadUserItem();
+				$this->lock = true;
 				$keywords = array_unique(explode(' ', $keywords));
 				$openslopeone = new OpenSlopeOne();
 		
