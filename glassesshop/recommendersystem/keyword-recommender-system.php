@@ -30,13 +30,20 @@
 	
 		public function recommend($keywords){
 			// pseudo-code
-			$recommendItems = array(); // each element is an array, stands for each recommender's recommend
+			//$recommendItems = array(); // each element is an array, stands for each recommender's recommend
+			$finalRecList = array();
 			foreach($this->recommenders as $name=>$recommender){
-				$recommendItems[] = $recommender->recommend($keywords);
-				print_r($recommender->recommend($keywords));
+				//$recommendItems[] = $recommender->recommend($keywords);
+				$weightArrayTemp = $recommender->recommend($keywords);
+				foreach($weightArrayTemp as $p_name => $p_weight){
+					if(isset($finalRecList[$p_name]))
+						$finalRecList[$p_name] += $p_weight*$this->weights[$name];
+					else
+						$finalRecList[$p_name] = $p_weight*$this->weights[$name];
+				}
 			}
-			// based on each recommender's weight
-			
+			print_r($finalRecList);
+			return $finalRecList;
 		}
 	}
 	

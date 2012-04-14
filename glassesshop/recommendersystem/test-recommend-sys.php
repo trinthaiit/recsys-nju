@@ -10,13 +10,15 @@
 	$tables = array();
 	$tables['query'] = "query";
 	$tables['query_item'] = "query_item";
-	$test_recommend = new KeywordRecommender(KEY_COL_SLOPEONE);
+	$test_recommend = new KeywordRecommender();
+	$col_recommend = new KeywordRecommender(KEY_COL_SLOPEONE);
 	//$test_recommend->preprocess($tables);
-	$test_recommender_sys = new KeywordRecommenderSystem(KEY_LINK_JACCARD);
+	$test_recommender_sys = new KeywordRecommenderSystem();
 	//$test_recommend->wordAssociationWithJaccardPreprocess(0.2,$tables);// 0.2 is the jaccard factor
 	//$test_recommend->collaborativeFilteringWithSlopeOnePreprocess();
 	
 	//$test_recommender_sys->addRecommender(KEY_COL_SLOPEONE, 0.001);
-	$test_recommender_sys->addRecommender(KEY_COL_SLOPEONE, 0.001 ,$test_recommend);
+	$test_recommender_sys->addRecommender("", 1 ,$test_recommend);
+	$test_recommender_sys->addRecommender(KEY_COL_SLOPEONE, 0.001 ,$col_recommend);
 	$list = $test_recommender_sys->recommend($keywords);
 	//print_r($list);
