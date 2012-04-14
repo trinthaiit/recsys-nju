@@ -26,15 +26,22 @@
 
 		private function __fill_query_table(){
 			$this->dm->query("BEGIN");
-			$querys = $this->dm->query("SELECT userid, refer FROM user WHERE refer IS NOT NULL AND refer <> '' AND refer <> 'null'");			
-			while($row = mysql_fetch_array($querys)){
-				$keyword_string = $this->qe->extractQuery($row['refer'], $this->delimiter);
-				$keyword_string = str_replace(array('\\', '/', '\''), '', $keyword_string);
-				// $keyword_string = mysql_real_escape_string($keyword_string);
+			$querys = $this->dm->query("SELECT userid, refer FROM user WHERE refer IS NOT NULL AND refer <> '' AND refer <> 'null'");
 
-				if($keyword_string != ""){
-					$insert_sql = "INSERT INTO Query (userId, query) VALUES ('{$row['userid']}', '{$keyword_string}')";
-					$this->dm->query($insert_sql);				
+			while($row = mysql_fetch_array($querys)){
+				$product_visits = $this->dm->query("SELECT count(id) visit_count FROM visit WHERE userid = '{$row['userid']}' AND pagetype = 'product'");
+				$product_visits_count = mysql_fetch_array($product_visits);
+				$product_visits_count = $product_visits_count['visit_count'];
+
+				if($product_visits_count > 0){
+					// this userid visits some products
+					$keyword_string = $this->qe->extractQuery($row['refer'], $this->delimiter);
+					$keyword_string = str_replace(array('\\', '/', '\''), '', $keyword_string);
+
+					if($keyword_string != ""){
+						$insert_sql = "INSERT INTO Query (userId, query) VALUES ('{$row['userid']}', '{$keyword_string}')";
+						$this->dm->query($insert_sql);				
+					}
 				}
 			}
 			$this->dm->query("COMMIT");
