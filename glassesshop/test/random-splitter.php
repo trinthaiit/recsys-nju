@@ -3,21 +3,41 @@
 
 	class RandomSplitter{
 		private $dm;
+		private $trainPercentage;
+		private $testPercentage;
 
-		public function __construct(){
+		public function __construct($config){
 			$this->dm = GlassDatabaseManager::getInstance();
+			$this->trainPercentage = $config['train_percentage'];
+			$this->testPercentage = $config['test_percentage'];
 
-			// you can change the following two params
-			$this->trainPercentage = 0.8;
-			$this->testPercentage = 0.2;
+			if(!isset($this->trainPercentage)){
+				$this->trainPercentage = 0.7;
+				
+				echo 'Dude, give me [train_percentage] param<br/>';
+				flush();
+				ob_flush();
+			}
+
+			if(!isset($this->testPercentage)){
+				$this->testPercentage = 0.3;
+
+				echo 'Dude, give me [test_percentage] param<br/>';
+				flush();
+				ob_flush();
+			}
 		}
 
 		public function start_split(){
-
+			echo 'RandomSplitter start_split<br/>';
+			flush();
+			ob_flush();
 		}
 
 		public function end_split(){
-
+			echo 'RandomSplitter end_split<br/>';
+			flush();
+			ob_flush();
 		}
 
 		/**

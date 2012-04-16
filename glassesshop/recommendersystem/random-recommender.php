@@ -5,7 +5,7 @@
 	class RandomRecommender implements iKeywordRecommender{
 		private $dm;
 
-		public function __construct(){
+		public function __construct($config){
 			$this->dm = GlassDatabaseManager::getInstance();
 		}
 

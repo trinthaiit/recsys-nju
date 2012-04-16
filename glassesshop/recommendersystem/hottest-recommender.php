@@ -6,7 +6,7 @@
 		private $dm;
 		private $hottestItems;
 
-		public function __construct(){
+		public function __construct($config){
 			$this->dm = GlassDatabaseManager::getInstance();
 			$this->hottestItems = array();
 		}

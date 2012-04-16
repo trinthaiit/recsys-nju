@@ -5,6 +5,8 @@
 
 	/* ---------  recommender -------------------- */
 	include_once "../recommendersystem/keyword-recommender.php";
+	include_once "../recommendersystem/random-recommender.php";	
+	include_once "../recommendersystem/hottest-recommender.php";
 
 	/* ---------  splitter -------------------- */
 	include_once "random-splitter.php";
@@ -19,19 +21,34 @@
 		private $rawDataProcessor;
 		private $recommenders;
 		private $system;
-		private $splitter;
-		private $evaluator;
+		private $splitters;
+		private $evaluators;
+		private $topN;
 
-		public function __construct(){
+		public function __construct($config){
 			$this->dm = GlassDatabaseManager::getInstance();
 			$this->rawDataProcessor = new GlassRawDataProcessor();
 			$this->system = new KeywordRecommenderSystem();
+			$this->topN = $config['topN'];
 
 			$this->recommenders = array();
-			$this->recommenders['keyword_recommender'] = new KeywordRecommender();
+			foreach($config['recommenders'] as $key => $recommender){
+				$recommender_name = $recommender['name'];
+				$this->recommenders[$key] = new $recommender_name($recommender['config']);
+				$this->system->addRecommender($key, $recommender['weight'], $this->recommenders[$key]);
+			}
 
-			$this->splitter = new RandomSplitter();
-			$this->evaluator = new HitEvaluator();
+			$this->splitters = array();
+			foreach($config['splitters'] as $key => $splitter){
+				$splitter_name = $splitter['name'];
+				$this->splitters[$key] = new $splitter_name($splitter['config']);
+			}
+
+			$this->evaluators = array();
+			foreach($config['evaluators'] as $key => $evaluator){
+				$evaluator_name = $evaluator['name'];
+				$this->evaluators[$key] = new $evaluator_name($evaluator['config']);
+			}
 		}
 
 		public function run(){
@@ -39,33 +56,36 @@
 			$tables = array();
 			$tables['query'] = 'query_train';
 			$tables['query_item'] = 'query_item';
-			$topN = 10;
+			$tables['query_test'] = 'query_test';
+			$topN = $this->topN;
 
 			$this->rawDataProcessor->processRawData();
 
-			$this->system->addRecommender('keyword_recommender', 1, $this->recommenders['keyword_recommender']);
+			foreach($this->splitters as $splitter){
+				$splitter->start_split();
+				$continue = true;
+				while($continue){ // split query into query train set and query test set
+					$continue = $splitter->split();
 
-			$this->splitter->start_split();
-			$continue = true;
-			while($continue){ // split query into query train set and query test set
-				$continue = $this->splitter->split();
-				
-				// train part
-				foreach($this->recommenders as $recommender){
-					$recommender->preprocess($tables);
-				}
+					// train part
+					foreach($this->recommenders as $recommender){
+						$recommender->preprocess($tables);
+					}
 
-				// test part
-				$this->evaluator->start_evaluate();
-				$query_result = $this->dm->query("select * from query_test");
-				while($query_row = mysql_fetch_array($query_result)){
-					$items = $this->system->recommend($query_row['query']);
-					$recommendItems = array_slice($items, 0, $topN);
-					$this->evaluator->evaluate($query_row, $recommendItems);
+					// test part
+					foreach($this->evaluators as $evaluator){
+						$evaluator->start_evaluate();
+						$query_result = $this->dm->query("select * from query_test");
+						while($query_row = mysql_fetch_array($query_result)){
+							$items = $this->system->recommend($query_row['query']);
+							$recommendItems = array_slice($items, 0, $topN);
+							$evaluator->evaluate($query_row, $recommendItems);
+						}
+						$evaluator->end_evaluate();
+					}
 				}
-				$this->evaluator->end_evaluate();
+				$splitter->end_split();
 			}
-			$this->splitter->end_split();
 		}
 	}
 ?>

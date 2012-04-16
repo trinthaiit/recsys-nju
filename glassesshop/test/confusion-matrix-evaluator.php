@@ -7,11 +7,15 @@
 		private $metrics;
 		private $total_item_count;
 
-		public function __construct(){
+		public function __construct($config){
 			$this->dm = GlassDatabaseManager::getInstance();		
 		}
 
 		public function start_evaluate(){
+			echo 'ConfusionMatrixEvaluator start_evaluate<br/>';
+			flush();
+			ob_flush();
+
 			$this->test_count = 0;
 			$this->metrics['accuracy'] = 0;
 			$this->metrics['MAE'] = 0;
@@ -29,6 +33,10 @@
 			$this->metrics['precision'] /= $this->test_count;
 			$this->metrics['recall'] /= $this->test_count;
 			print_r($this->metrics);
+
+			echo 'ConfusionMatrixEvaluator end_evaluate<br/>';
+			flush();
+			ob_flush();
 		}
 
 		public function evaluate($query, $recommendItems){

@@ -7,12 +7,17 @@
 		private $iteration_count;
 		private $folds;
 
-		public function __construct(){
+		public function __construct($config){
 			$this->dm = GlassDatabaseManager::getInstance();
 			$this->iteration_count = 0;
+			$this->k = $config['k_fold'];
+			if(!isset($this->k)){
+				$this->k = 10;
 
-			// you can change the following param
-			$this->k = 10;
+				echo 'Dude, give me [k_fold] param<br/>';
+				flush();
+				ob_flush();
+			}
 		}
 
 		public function start_split(){
@@ -42,7 +47,9 @@
 		}
 
 		public function end_split(){
-
+			echo 'KFoldCrossSplitter end_split<br/>';
+			flush();
+			ob_flush();
 		}
 
 		public function split(){
