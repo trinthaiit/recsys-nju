@@ -13,10 +13,12 @@
 		private $user;
 		private $item;
 		private $lock;
+		private $jaccard;
 		
-		public function __construct($name = ''){
+		public function __construct($argArray = ''){
 			$this->dm = GlassDatabaseManager::getInstance();
-			$this->name = $name;
+			$this->name = $argArray['name'];
+			$this->jaccard = $argArray['jaccard'];
 			$this->lock = false;
 		}
 		
@@ -68,7 +70,7 @@
 			}
 		}
 		
-		public function wordAssociationWithJaccardPreprocess($threshold,$tables){
+		public function wordAssociationWithJaccardPreprocess($tables){
 			$this->dm->query("BEGIN");
 			$this->dm->query("truncate keyword_link");
 			$result = $this->dm->query("SELECT keyword,count FROM keyword where count > 1");
@@ -90,7 +92,7 @@
 				    			$jaccard = $nAB/($count + $count1 - $nAB);
 				    		else
 				    			$jaccard = 1;
-				    		if($jaccard > $threshold){
+				    		if($jaccard > $this->jaccard){
 				       	 		$this->dm->query("INSERT INTO keyword_link(keyword, keyword_expand, link) VALUE ('".$key."', '".$key1."','".$jaccard."')");
 				    		}
 			    		}
