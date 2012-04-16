@@ -18,7 +18,12 @@
 		public function __construct($argArray = ''){
 			$this->dm = GlassDatabaseManager::getInstance();
 			$this->name = $argArray['name'];
-			$this->jaccard = $argArray['jaccard'];
+			if($this->name == KEY_LINK_JACCARD && key_exists('jaccard', $argArray))
+				$this->jaccard = $argArray['jaccard'];
+			else if($this->name == KEY_LINK_JACCARD && !key_exists('jaccard', $argArray))
+				echo "warning: jaccard is not set<br />";
+			else
+				$this->jaccard = 0.2;
 			$this->lock = false;
 		}
 		
