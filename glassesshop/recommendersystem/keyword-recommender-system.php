@@ -42,7 +42,7 @@
 						$finalRecList[$p_name] = $p_weight*$this->weights[$name];
 				}
 			}
-			print_r($finalRecList);
+			//print_r($finalRecList);
 			return $finalRecList;
 		}
 	}

@@ -38,8 +38,7 @@
 			}
 		}
 		
-		public function preprocess($tables, $startTime=null){
-			
+		public function preprocess($tables, $startTime=null){			
 			$word_segmenter = new WordSegmenter();
 			$this->dm->executeSqlFile( __DIR__ . "/rec_tables.sql");
 					
@@ -73,6 +72,10 @@
 									'{$weight_row['item']}', '{$weight}')");
 				}
 			}
+			if($this->name == KEY_COL_SLOPEONE)
+				$this->collaborativeFilteringWithSlopeOnePreprocess();
+			if($this->name == KEY_LINK_JACCARD)
+				$this->wordAssociationWithJaccardPreprocess($tables);
 		}
 		
 		public function wordAssociationWithJaccardPreprocess($tables){
