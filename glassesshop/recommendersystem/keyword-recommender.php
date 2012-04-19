@@ -148,10 +148,9 @@
 							$weightArray[$p_name] = $p_weight;
 					}
 				}
+				if(count($weightArray) < 20)
+					$weightArray = $weightArray+$this->addHotList();
 				arsort($weightArray);
-				// echo "<br />------------------------------------------------------------<br />";
-				// //print_r($weightArray);
-				// echo "<br />------------------------------------------------------------<br />";
 				return $weightArray;				
 			}
 			else if($this->name == KEY_COL_SLOPEONE){
@@ -175,9 +174,6 @@
 					}
 				}
 				arsort($weightArray);
-				// echo "<br />------------------------------------------------------------<br />";
-				// //print_r($weightArray);
-				// echo "<br />------------------------------------------------------------<br />";
 				return $weightArray;
 			}
 			else{	
@@ -194,10 +190,21 @@
 								$weightArray[$p_name] = $p_weight;
 						}
 					}
+					if(count($weightArray) < 20)
+						$weightArray = $weightArray+$this->addHotList();
 					arsort($weightArray);
 					return $weightArray;
 				}
 			}
+	    }
+	    
+	    public function addHotList(){
+	    	$weightArray = array();
+	   		$item_result = $this->dm->query("SELECT pageinfo item, count(id) item_count FROM visit WHERE pagetype = 'product' AND pageinfo <> '' AND userId NOT IN (SELECT userId FROM query_test) GROUP BY pageinfo ORDER BY count(id) DESC ");
+			while($item_row = mysql_fetch_array($item_result)){
+				$weightArray[$item_row['item']] = 0; // use count as weight, sort is handled by DBMS
+			}
+			return $weightArray;
 	    }
 		
     	public function recommend($keywords){
