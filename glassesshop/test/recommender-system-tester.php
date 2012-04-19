@@ -33,11 +33,14 @@
 			$this->topN = $config['topN'];
 
 			$this->recommenders = array();
+			$total_weight = 0;
 			foreach($config['recommenders'] as $key => $recommender){
 				$recommender_name = $recommender['name'];
 				$this->recommenders[$key] = new $recommender_name($recommender['config']);
 				$this->system->addRecommender($key, $recommender['weight'], $this->recommenders[$key]);
+				$total_weight += $recommender['weight'];
 			}
+			assert("$total_weight == 1");
 
 			$this->splitters = array();
 			foreach($config['splitters'] as $key => $splitter){
@@ -83,6 +86,10 @@
 							$evaluator->evaluate($query_row, $recommendItems);
 						}
 						$evaluator->end_evaluate();
+					}
+
+					foreach($this->recommenders as $recommender){
+						$recommender->cleanup();
 					}
 				}
 				$splitter->end_split();
