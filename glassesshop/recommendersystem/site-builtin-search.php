@@ -3,6 +3,10 @@ include_once "../interface/recsys-interface.php";
 
 class SiteBuiltinSearch implements iKeywordRecommender {
     private static $_cache = array();
+    private static $hit_count = 0;
+    private static $miss_count = 0;
+    private static $hottest_keywords = array('glasses', 'cheap', 'eyeglasses', 'prescription', 'frames', 'sunglasses', 'online', 'eye', 'discount', 'eyeglass');
+
 
     private static function create_html_dom($url) {
         $html = file_get_contents($url);
@@ -16,11 +20,18 @@ class SiteBuiltinSearch implements iKeywordRecommender {
         $dom = SiteBuiltinSearch::create_html_dom($url);
         $elem = $dom->getElementById('pSKU');
 
+        if(! is_object($elem))
+            return 'UNKNOWN';
+
         $text = $elem->textContent;
         $pattern = '/^SKU: (.*)$/';
         $matches = array();
         $times = preg_match($pattern, $text, $matches);
-        return $matches[1];
+        if(isset($matches[1])) {
+            return $matches[1];
+        } else {
+            return 'UNKNOWN';
+        }
     }
 
     /**
@@ -44,11 +55,19 @@ class SiteBuiltinSearch implements iKeywordRecommender {
             // so it's ok to use getAttribute method
             $prod_url = $node->getAttribute('href');
 
+            echo '<p>processing URL:' . $prod_url . '</p>';
             if(! array_key_exists($prod_url, SiteBuiltinSearch::$_cache)) {
+                echo '<p>URL exists in cache</p>';
+                SiteBuiltinSearch::$miss_count++;
                 SiteBuiltinSearch::$_cache[$prod_url] = SiteBuiltinSearch::get_sku($prod_url);
             }
-            $results[] = SiteBuiltinSearch::$_cache[$prod_url];
+            else {
+                SiteBuiltinSearch::$hit_count++;
+            }
 
+            $sku = SiteBuiltinSearch::$_cache[$prod_url];
+            if($sku != 'UNKNOWN')
+                $results[] = $sku;
         }
 
         // appending weight
@@ -66,23 +85,49 @@ class SiteBuiltinSearch implements iKeywordRecommender {
     }
 
     public function preprocess($tables, $startTime=null) {
-        // pass
+        // this restricts concurrency
+        SiteBuiltinSearch::$hit_count = 0;
+        SiteBuiltinSearch::$miss_count = 0;
     }
 
     public function recommend($keywords) {
+        echo '<pre>--------------------------------------------------------------';
+        echo '<p>processing keywords "' . $keywords . '"</p>';
         $actual_keywords = explode(' ', $keywords);
-        return SiteBuiltinSearch::search($actual_keywords);
+        echo 'Actual keywords are:';
+        print_r($actual_keywords);
+        
+        // filter out hottest keywords
+        $effective_keywords = array();
+        foreach($actual_keywords as $keyword) {
+            if(! in_array($keyword, SiteBuiltinSearch::$hottest_keywords))
+                $effective_keywords[] = $keyword;
+        }
+        echo 'Effective keywords are:';
+        print_r($effective_keywords);
+        $result = SiteBuiltinSearch::search($effective_keywords);
+        echo 'Recommendations are:';
+        print_r($result);
+        echo '--------------------------------------------------------------</pre>';
     }
 
     public function cleanup() {
-        // pass
+        echo '<p>hit ratio: ';
+        echo SiteBuiltinSearch::$hit_count / (SiteBuiltinSearch::$hit_count + SiteBuiltinSearch::$miss_count);
+        echo '</p>';
     }
 
 }
 
-$ss = new SiteBuiltinSearch();
-echo '<pre>';
-print_r($ss->recommend('frame red'));
-echo '</pre>';
+function test() {
+    $time_start = microtime(true);
+    echo '<pre>';
+    $ss = new SiteBuiltinSearch();
+    print_r($ss->recommend('red eyeglasses frame'));
+    echo '</pre>';
+    $ss->cleanup();
+    $time_end = microtime(true);
+    print 'cost time: '. ($time_end - $time_start);
+}
 ?>
 
