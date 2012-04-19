@@ -7,6 +7,7 @@
 	include_once "../recommendersystem/keyword-recommender.php";
 	include_once "../recommendersystem/random-recommender.php";	
 	include_once "../recommendersystem/hottest-recommender.php";
+	include_once "../recommendersystem/fptree-recommender.php";
 
 	/* ---------  splitter -------------------- */
 	include_once "random-splitter.php";
