@@ -20,7 +20,6 @@
 		}
 
 		public function preprocess($tables, $startTime = null){
-			$tables['query'] = 'fp_query_train'; // TODO delete
 
 			// create necessary tables
 			$this->dm->executeSqlFile(__DIR__ . '\fptree-tables.sql');
@@ -55,16 +54,14 @@
 			foreach($this->query_array as $id => $query){
 				$keywordId_count = array();
 				$keyword_count = array();
-				foreach($query as $keyword_id){
-					$keyword_result = $this->dm->query("SELECT * FROM fptree_keyword_count WHERE id = $keyword_id");
-					$keyword_row = mysql_fetch_array($keyword_result);
-					assert('$keyword_row["id"] == $keyword_id');
-					$keywordId_count[$keyword_id] = $keyword_row['count'];
+				$query_string_represent = '(' . implode(",", $query) .')';
+				$keyword_result = $this->dm->query("SELECT * FROM fptree_keyword_count WHERE id IN {$query_string_represent} ORDER BY count DESC, id DESC");
+				while($keyword_row = mysql_fetch_array($keyword_result)){
+					$keywordId_count[$keyword_row['id']] = $keyword_row['count'];
 					$keyword_count[$keyword_row['keyword']] = $keyword_row['count'];
 				}
 				
 				// update query
-				arsort($keyword_count);
 				$resort_query = '';
 				foreach($keyword_count as $keyword => $count){
 					$resort_query = $resort_query . $keyword;
@@ -75,11 +72,16 @@
 
 				// update query_array
 				$keywordId_count = array_filter($keywordId_count, array($this, "over_threshold"));
-				$array = array($keywordId_count, array_keys($keywordId_count));
-				array_multisort($array[0], SORT_DESC, $array[1], SORT_DESC);
-				$keywordId_count = array_combine($array[1], $array[0]);
-				unset($array);
-				$this->query_array[$id] = array_keys($keywordId_count); 
+				if(!empty($keywordId_count)){
+					$array = array($keywordId_count, array_keys($keywordId_count));
+					array_multisort($array[0], SORT_DESC, $array[1], SORT_DESC);
+					$keywordId_count = array_combine($array[1], $array[0]);
+					unset($array);				
+					$this->query_array[$id] = array_keys($keywordId_count); 		
+				}
+				else{
+					unset($this->query_array[$id]);
+				}
 			}
 
 			// build fp-tree
@@ -158,7 +160,18 @@
 				$frequent_query = substr_replace($frequent_query, "", -1);
 				$this->dm->query("INSERT INTO fptree_frequent_query (query) VALUES ('{$frequent_query}')");
 			}
-			exit(-1);
+			
+			// compute frequent_query_item_weight
+			$frequent_query_result = $this->dm->query("SELECT query FROM fptree_frequent_query");
+			while($frequent_query_row = mysql_fetch_array($frequent_query_result)){
+				$item_result = $this->dm->query("SELECT itemId, count(itemId) item_count FROM query_item WHERE queryId IN 
+					(SELECT id FROM {$tables['query']} WHERE query LIKE '%{$frequent_query_row['query']}%')
+					GROUP BY itemId");
+				while($item_row = mysql_fetch_array($item_result)){
+					$this->dm->query("INSERT INTO fptree_frequent_query_item_weight (frequent_query, item, weight)
+						VALUES ('{$frequent_query_row['query']}', '{$item_row['itemId']}', '{$item_row['item_count']}')");
+				}
+			}
 		}
 
 		private function mine($fplists){
@@ -249,7 +262,67 @@
 		}
 
 		public function recommend($keywords){
+			$recommend_items = array();
+			$keywords = array_unique(preg_split('@ +@', $keywords, NULL, PREG_SPLIT_NO_EMPTY));
+			$keywords_string_represent = "('" . implode("','", $keywords) .  "')";
+			$keyword_result = $this->dm->query("SELECT keyword, count FROM fptree_keyword_count WHERE 
+				keyword IN {$keywords_string_represent}
+				AND count >= {$this->min_support}
+				ORDER BY count DESC, id DESC");
+			$keywords = array();
+			while($keyword_row = mysql_fetch_array($keyword_result)){
+				$keywords[] = $keyword_row['keyword'];
+			}
+			if(!empty($keywords)){
+				for($i = count($keywords); $i >= 2; $i++){
+					$permutations = $this->permutate(count($keywords) - 1, $i);
+					foreach($permutations as $permutation){
+						$query = '';
+						foreach($permutation as $index){
+							$query .= $keywords[$index];
+						}
+						$item_result = $this->dm->query("SELECT item FROM fptree_frequent_query_item_weight
+														 WHERE frequent_query = '{$query}' ORDER BY weight DESC");
+						while($item_row = mysql_fetch_array($item_result)){
+							if(!array_key_exists($item_row['item'], $recommend_items)){
+								$recommend_items[$item_row['item']] = 1 ;
+							}
+						}
+					}
+				}
+			}
+			if(count($recommend_items) < 20){
+				$recommend_items_string_represent = "('" . implode("','", array_keys($recommend_items)) . "')";
+				$item_result = $this->dm->query("SELECT pageinfo item, count(id) item_count FROM visit WHERE pagetype = 'product' 
+					AND pageinfo <> '' AND userId NOT IN (SELECT userId FROM {$tables['query_test']})
+					AND pageinfo NOT IN {$recommend_items_string_represent} 
+					GROUP BY pageinfo ORDER BY count(id) DESC");
+				while($item_row = mysql_fetch_array($item_result)){
+					$recommend_items[$item_row['item']] = 1;
+				}
+			}
+			return $recommend_items;
+		}
 
+		private function permutate($max, $select){
+			if($select == 1){
+				$result = range(0, $max);
+				foreach($result as &$entry){
+					$entry = array($entry);
+				}
+				return $result;
+			}
+			else{
+				$result = array();
+				$previous = permutation($max - 1, $select - 1);
+				foreach($previous as $entry){
+					$last = end($entry);
+					for($i = $last + 1; $i <= $max; $i++){
+						$result[] = array_merge($entry, array($i));
+					}
+				}
+				return $result;
+			}
 		}
 
 		private function over_threshold($count){

@@ -30,13 +30,13 @@
 			$all_query = array();
 			while($all_query[] = mysql_fetch_assoc($query_result));
 			array_pop($all_query); // pop the last 'false' result
-			assert('array_size($all_query) == mysql_num_rows($query_result)');
+			assert('count($all_query) == mysql_num_rows($query_result)');
 
 			$shuffle_reuslt = shuffle($all_query);
 			assert('$shuffle_reuslt == true');
 
-			$this->folds = array_chunk($all_query, round(array_size($all_query) / $this->k));
-			assert('array_size($this->folds) == $this->k');
+			$this->folds = array_chunk($all_query, ceil(count($all_query) / $this->k));
+			assert('count($this->folds) == $this->k');
 
 			$time_end = microtime(true);
 			$cost_time = $time_end - $time_start;

@@ -69,7 +69,7 @@
 				$splitter->start_split();
 				$continue = true;
 				while($continue){ // split query into query train set and query test set
-					$continue = $splitter->split();
+					$continue = $splitter->split(); 
 
 					// train part
 					foreach($this->recommenders as $recommender){
