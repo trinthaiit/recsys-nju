@@ -17,6 +17,7 @@
 		private $jaccard;
 		private $cosine;
 		private $hottestItems;
+		private static $common_preprocess_done = false;
 
 		public function __construct($argArray = ''){
 			$this->dm = GlassDatabaseManager::getInstance();
@@ -59,50 +60,58 @@
 		}
 		
 		public function preprocess($tables, $startTime=null){
-			echo "KeywordRecommender preprocess start.....<br/>";
+			echo "KeywordRecommender_{$this->name} preprocess start.....<br/>";
 			flush();
 			ob_flush();
 			$time_start = microtime(true);
 
-			$word_segmenter = new WordSegmenter();
-			$this->dm->executeSqlFile( __DIR__ . "/rec_tables.sql");
-					
-			/* Construct the keyword and keyword_item_weight table */
-			$keyword_item_count = array();
-			$query_results = $this->dm->query("select id, query from ".$tables['query']."");
-			$keyword_count = array();
-			while($query_row = mysql_fetch_array($query_results)){
-				$items = array();
-				$item_results = $this->dm->query("SELECT itemId FROM {$tables['query_item']} WHERE queryId = {$query_row['id']}");
-				while($item_row = mysql_fetch_array($item_results)){
-					$items[] = $item_row['itemId'];
-				}
+			if(self::$common_preprocess_done == false){
+				$word_segmenter = new WordSegmenter();
+				$this->dm->executeSqlFile( __DIR__ . "/rec_tables.sql");
+						
+				/* Construct the keyword and keyword_item_weight table */
+				$keyword_item_count = array();
+				$query_results = $this->dm->query("select id, query from ".$tables['query']."");
+				$keyword_count = array();
+				while($query_row = mysql_fetch_array($query_results)){
+					$items = array();
+					$item_results = $this->dm->query("SELECT itemId FROM {$tables['query_item']} WHERE queryId = {$query_row['id']}");
+					while($item_row = mysql_fetch_array($item_results)){
+						$items[] = $item_row['itemId'];
+					}
 
-				$keywords = $word_segmenter->segmentWords($query_row['query']);
-				foreach ($keywords as $keyword) {
-					if(isset($keyword_count[$keyword])){
-						$keyword_count[$keyword] += 1;
-					}
-					else{
-						$keyword_count[$keyword] = 1;
-						$keyword_item_count[$keyword] = array();
-					}
-					foreach($items as $item){
-						if(!array_key_exists($item, $keyword_item_count[$keyword])){
-							$keyword_item_count[$keyword][$item] = 0;
+					$keywords = $word_segmenter->segmentWords($query_row['query']);
+					foreach ($keywords as $keyword) {
+						if(isset($keyword_count[$keyword])){
+							$keyword_count[$keyword] += 1;
 						}
-						$keyword_item_count[$keyword][$item] += 1;
+						else{
+							$keyword_count[$keyword] = 1;
+							$keyword_item_count[$keyword] = array();
+						}
+						foreach($items as $item){
+							if(!array_key_exists($item, $keyword_item_count[$keyword])){
+								$keyword_item_count[$keyword][$item] = 0;
+							}
+							$keyword_item_count[$keyword][$item] += 1;
+						}
+					}	
+				}
+
+				$this->dm->query("BEGIN");
+				foreach ($keyword_count as $key => $key_count) {
+					foreach($keyword_item_count[$key] as $item => $count){
+						$weight = $count / $key_count; 
+						$this->dm->query("INSERT INTO keyword_item_weight(keyword, item, weight) VALUE('{$key}',
+										'{$item}', '{$weight}')");
 					}
-				}	
+					$this->dm->query("INSERT INTO keyword(keyword, count) VALUE ('{$key}', {$key_count})");
+				}
+				$this->dm->query("COMMIT");
+
+				self::$common_preprocess_done = true;
 			}
 
-			foreach ($keyword_count as $key => $key_count) {
-				foreach($keyword_item_count[$key] as $item => $count){
-					$weight = $count / $key_count; 
-					$this->dm->query("INSERT INTO keyword_item_weight(keyword, item, weight) VALUE('{$key}',
-									'{$item}', '{$weight}')");
-				}
-			}
 			if($this->name == KEY_COL_SLOPEONE)
 				$this->collaborativeFilteringWithSlopeOnePreprocess();
 			if($this->name == KEY_LINK_JACCARD)
@@ -112,7 +121,7 @@
 		
 			$time_end = microtime(true);
 			$cost_time = $time_end - $time_start;
-			echo "KeywordRecommender preprocess end.....<br/>";
+			echo "KeywordRecommender_{$this->name} preprocess end.....<br/>";
 			echo "cost time: $cost_time <br/>";
 			flush();
 			ob_flush();
@@ -122,36 +131,54 @@
 			$matrix = array();
 			$keywords = array();
 			$items = array();
+			$keyword_items = array();
+
 			$keyword_result = $this->dm->query("SELECT keyword FROM keyword");
 			while($keyword_row = mysql_fetch_array($keyword_result)){
 				$keywords[] = $keyword_row['keyword'];
 			}
-			$item_result = $this->dm->query("SELECT name FROM item");
-			while($item_row = mysql_fetch_array($item_result)){
-				$items[] = $item_row['name'];
-			}
 
-			// build matrix
-			foreach($keywords as $keyword){
-				$matrix[$keyword] = array();
-				foreach($items as $item){			
-					$keyword_item_result = $this->dm->query("SELECT * FROM keyword_item_weight 
-													WHERE keyword = '{$keyword}' AND item = '{$item}'");
-					if(mysql_num_rows($keyword_item_result) > 0){
-						$matrix[$keyword][$item] = 1;
-					}
-					else{
-						$matrix[$keyword][$item] = 0;
-					}
+			$keyword_item_result = $this->dm->query("SELECT keyword, item FROM keyword_item_weight");
+			while($keyword_item_row = mysql_fetch_array($keyword_item_result)){
+				if(!array_key_exists($keyword_item_row['keyword'], $keyword_items)){
+					$keyword_items[$keyword_item_row['keyword']] = array();
+				}
+				if(!in_array($keyword_item_row['item'], $keyword_items[$keyword_item_row['keyword']])){
+					$keyword_items[$keyword_item_row['keyword']][] = $keyword_item_row['item'];
 				}
 			}
 
+			// $item_result = $this->dm->query("SELECT name FROM item");
+			// while($item_row = mysql_fetch_array($item_result)){
+			// 	$items[] = $item_row['name'];
+			// }
+
+			// // build matrix
+			// foreach($keywords as $keyword){
+			// 	$matrix[$keyword] = array();
+			// 	foreach($items as $item){			
+			// 		$keyword_item_result = $this->dm->query("SELECT * FROM keyword_item_weight 
+			// 										WHERE keyword = '{$keyword}' AND item = '{$item}'");
+			// 		if(mysql_num_rows($keyword_item_result) > 0){
+			// 			$matrix[$keyword][$item] = 1;
+			// 		}
+			// 		else{
+			// 			$matrix[$keyword][$item] = 0;
+			// 		}
+			// 	}
+			// }
+
 			$this->dm->query("BEGIN");
 			// compute cosine similarity and fill keyword_cosine_link table
-			foreach($matrix as $keyword => $items){
-				foreach($matrix as $keyword1 => $items1){
+			// foreach($matrix as $keyword => $items){
+			// 	foreach($matrix as $keyword1 => $items1){
+			foreach($keywords as $keyword){
+				foreach($keywords as $keyword1){
 					if($keyword != $keyword1 && $keyword != null && $keyword1 != null){
-						$cosine = $this->cosineSimilarity(array_values($item), array_values($items1));
+						$common_item_count = count(array_intersect($keyword_items[$keyword], $keyword_items[$keyword1]));
+						$key1_item_count = count($keyword_items[$keyword]);
+						$key2_item_count = count($keyword_items[$keyword1]);
+						$cosine = $key1_item_count * $key2_item_count != 0 ? $common_item_count / sqrt($key1_item_count * $key2_item_count) : 0;
 						if($cosine >= $this->cosine){
 							$this->dm->query("INSERT INTO keyword_cosine_link (keyword, keyword_expand, link) 
 											VALUES ('{$keyword}', '{$keyword1}', {$cosine})");
@@ -160,6 +187,25 @@
 				}
 			}
 			$this->dm->query("COMMIT");
+		}
+
+		public function cosineSimilaritySimplified($key1, $key2, $keyword_item_count){
+			// $common_item_count_result = $this->dm->query("SELECT count(*) FROM keyword_item_weight WHERE keyword = '{$key1}' AND
+			// 					item IN (SELECT item FROM keyword_item_weight WHERE keyword = '{$key2}')");
+			// $common_item_count_row = mysql_fetch_array($common_item_count_result);
+			// $common_item_count = $common_item_count_row[0];
+
+			// $key1_item_count_result = $this->dm->query("SELECT count(*) FROM keyword_item_weight WHERE keyword = '{$key1}'");
+			// $key1_item_count_row = mysql_fetch_array($key1_item_count_result);
+			// $key1_item_count = $key1_item_count_row[0];
+
+			// $key2_item_count_result = $this->dm->query("SELECT count(*) FROM keyword_item_weight WHERE keyword = '{$key2}'");
+			// $key2_item_count_row = mysql_fetch_array($key2_item_count_result);
+			// $key2_item_count = $key2_item_count_row[0];
+
+			// $common_item_count = array_keys($keyword_item_count[$key1])
+
+			// return $key1_item_count * $key2_item_count != 0 ? $common_item_count / sqrt($key1_item_count * $key2_item_count) : 0;
 		}
 
 		public function cosineSimilarity($vector1, $vector2){
@@ -202,8 +248,8 @@
 			    		}
 			    	}
 			    }
-			 }
-			 $this->dm->query("COMMIT");
+			}
+			$this->dm->query("COMMIT");
 		}
 		
 		public function collaborativeFilteringWithSlopeOnePreprocess(){
