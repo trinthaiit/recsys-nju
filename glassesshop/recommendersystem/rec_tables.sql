@@ -3,6 +3,7 @@ begin;
 drop table if exists Keyword_Item_Weight;
 drop table if exists Keyword;
 drop table if exists Keyword_Link;
+drop table if exists Keyword_Cosine_Link;
 
 create table if not exists Keyword(
 	id bigint(10) primary key auto_increment,
@@ -18,6 +19,13 @@ create table if not exists Keyword_Item_Weight(
 );
 
 create table if not exists Keyword_Link(
+	id bigint(10) primary key auto_increment,
+	keyword varchar(255) not null,
+	keyword_expand varchar(255) not null,
+	link float(10)
+);
+
+create table if not exists Keyword_Cosine_Link(
 	id bigint(10) primary key auto_increment,
 	keyword varchar(255) not null,
 	keyword_expand varchar(255) not null,

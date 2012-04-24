@@ -6,6 +6,8 @@
 		private $test_count;
 		private $metrics;
 		private $total_item_count;
+		private $time_start;
+		private $time_end;
 
 		public function __construct($config){
 			$this->dm = GlassDatabaseManager::getInstance();		
@@ -15,6 +17,7 @@
 			echo 'ConfusionMatrixEvaluator start_evaluate<br/>';
 			flush();
 			ob_flush();
+			$this->time_start = microtime(true);
 
 			$this->test_count = 0;
 			$this->metrics['accuracy'] = 0;
@@ -33,8 +36,12 @@
 			$this->metrics['precision'] /= $this->test_count;
 			$this->metrics['recall'] /= $this->test_count;
 			print_r($this->metrics);
-
+			echo "<br/>";
+			
+			$this->time_end = microtime(true);
+			$cost_time = $this->time_end - $this->time_start;
 			echo 'ConfusionMatrixEvaluator end_evaluate<br/>';
+			echo "cost time: $cost_time <br/>";
 			flush();
 			ob_flush();
 		}

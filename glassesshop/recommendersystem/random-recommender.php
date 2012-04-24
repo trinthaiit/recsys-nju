@@ -17,7 +17,7 @@
 
 		}
 
-		public function recommend($keywords){
+		public function recommend($keywords, $queryId){
 			$items = array();
 			$item_result = $this->dm->query("SELECT * FROM item ORDER BY RAND() limit 100"); // I think 100 is enough
 			while($item_row = mysql_fetch_array($item_result)){

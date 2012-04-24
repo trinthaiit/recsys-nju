@@ -14,10 +14,22 @@
 		}
 
 		public function processRawData(){
+			echo "processRawData start........<br/>";
+			flush();
+			ob_flush();
+			$time_start = microtime(true);
+
 			$this->__generate_tables();
 			$this->__fill_query_table();
 			$this->__fill_item_table();
 			$this->__fill_query_item_table();
+
+			$time_end = microtime(true);
+			$cost_time = $time_end - $time_start;
+			echo 'processRawData end......<br/>';
+			echo "cost time: $cost_time <br/>";
+			flush();
+			ob_flush();
 		}
 
 		private function __generate_tables(){

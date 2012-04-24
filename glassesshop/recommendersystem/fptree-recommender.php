@@ -7,6 +7,7 @@
 		private $query_array; // an array contains all querys, each query is an array of keyword id. For example [[1, 2, 3][3, 4][1, 2][0, 5]]
 		private $min_support;
 		private $fplists;
+		private $hottestItems;
 
 		public function __construct($config){
 			$this->dm = GlassDatabaseManager::getInstance();
@@ -17,6 +18,8 @@
 				flush();
 				ob_flush();
 			}
+
+			$this->hottestItems = array();
 		}
 
 		public function preprocess($tables, $startTime = null){
@@ -148,6 +151,7 @@
 			}
 			
 			// mining fptree
+			$this->dm->query("BEGIN");
 			$frequent_items = $this->mine($this->fplists);
 			foreach($frequent_items as $frequent_item){
 				$frequent_query = '';
@@ -160,8 +164,10 @@
 				$frequent_query = substr_replace($frequent_query, "", -1);
 				$this->dm->query("INSERT INTO fptree_frequent_query (query) VALUES ('{$frequent_query}')");
 			}
+			$this->dm->query("COMMIT");
 			
 			// compute frequent_query_item_weight
+			$this->dm->query("BEGIN");
 			$frequent_query_result = $this->dm->query("SELECT query FROM fptree_frequent_query");
 			while($frequent_query_row = mysql_fetch_array($frequent_query_result)){
 				$item_result = $this->dm->query("SELECT itemId, count(itemId) item_count FROM query_item WHERE queryId IN 
@@ -171,6 +177,15 @@
 					$this->dm->query("INSERT INTO fptree_frequent_query_item_weight (frequent_query, item, weight)
 						VALUES ('{$frequent_query_row['query']}', '{$item_row['itemId']}', '{$item_row['item_count']}')");
 				}
+			}
+			$this->dm->query("COMMIT");
+
+			// get one hundred hottest items
+			$item_result = $this->dm->query("SELECT pageinfo item, count(id) item_count FROM visit WHERE pagetype = 'product' 
+				AND pageinfo <> '' AND userId NOT IN (SELECT userId FROM {$tables['query_test']}) 
+				GROUP BY pageinfo ORDER BY count(id) DESC ");
+			while($item_row = mysql_fetch_array($item_result)){
+				$this->hottestItems[$item_row['item']] = $item_row['item_count']; // use count as weight, sort is handled by DBMS
 			}
 		}
 
@@ -261,7 +276,7 @@
 
 		}
 
-		public function recommend($keywords){
+		public function recommend($keywords, $queryId){
 			$recommend_items = array();
 			$keywords = array_unique(preg_split('@ +@', $keywords, NULL, PREG_SPLIT_NO_EMPTY));
 			$keywords_string_represent = "('" . implode("','", $keywords) .  "')";
@@ -274,7 +289,7 @@
 				$keywords[] = $keyword_row['keyword'];
 			}
 			if(!empty($keywords)){
-				for($i = count($keywords); $i >= 2; $i++){
+				for($i = count($keywords); $i >= 2; $i--){
 					$permutations = $this->permutate(count($keywords) - 1, $i);
 					foreach($permutations as $permutation){
 						$query = '';
@@ -292,13 +307,10 @@
 				}
 			}
 			if(count($recommend_items) < 20){
-				$recommend_items_string_represent = "('" . implode("','", array_keys($recommend_items)) . "')";
-				$item_result = $this->dm->query("SELECT pageinfo item, count(id) item_count FROM visit WHERE pagetype = 'product' 
-					AND pageinfo <> '' AND userId NOT IN (SELECT userId FROM {$tables['query_test']})
-					AND pageinfo NOT IN {$recommend_items_string_represent} 
-					GROUP BY pageinfo ORDER BY count(id) DESC");
-				while($item_row = mysql_fetch_array($item_result)){
-					$recommend_items[$item_row['item']] = 1;
+				foreach($this->hottestItems as $item => $weight){
+					if(!array_key_exists($item, $recommend_items)){
+						$recommend_items[$item] = 1;
+					}
 				}
 			}
 			return $recommend_items;
@@ -314,7 +326,7 @@
 			}
 			else{
 				$result = array();
-				$previous = permutation($max - 1, $select - 1);
+				$previous = $this->permutate($max - 1, $select - 1);
 				foreach($previous as $entry){
 					$last = end($entry);
 					for($i = $last + 1; $i <= $max; $i++){

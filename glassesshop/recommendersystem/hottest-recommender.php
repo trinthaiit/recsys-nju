@@ -25,7 +25,7 @@
 
 		}
 
-		public function recommend($keywords){
+		public function recommend($keywords, $queryId){
 			return $this->hottestItems;
 		}
 	}

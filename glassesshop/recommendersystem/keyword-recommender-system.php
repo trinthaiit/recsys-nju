@@ -28,13 +28,13 @@
 			unset($this->weights[$name]);
 		}
 	
-		public function recommend($keywords){
+		public function recommend($keywords, $queryId){
 			// pseudo-code
 			//$recommendItems = array(); // each element is an array, stands for each recommender's recommend
 			$finalRecList = array();
 			foreach($this->recommenders as $name=>$recommender){
 				//$recommendItems[] = $recommender->recommend($keywords);
-				$weightArrayTemp = $recommender->recommend($keywords);
+				$weightArrayTemp = $recommender->recommend($keywords, $queryId);
 				foreach($weightArrayTemp as $p_name => $p_weight){
 					if(isset($finalRecList[$p_name]))
 						$finalRecList[$p_name] += $p_weight*$this->weights[$name];

@@ -25,4 +25,6 @@ create table if not exists fptree_frequent_query_item_weight(
 	weight float(10)
 );
 
+create index frequent_query_index on fptree_frequent_query_item_weight (frequent_query) using btree;
+
 commit;

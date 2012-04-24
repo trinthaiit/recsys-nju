@@ -8,6 +8,7 @@
 	include_once "../recommendersystem/random-recommender.php";	
 	include_once "../recommendersystem/hottest-recommender.php";
 	include_once "../recommendersystem/fptree-recommender.php";
+	include_once "../recommendersystem/perfect-recommender.php";
 
 	/* ---------  splitter -------------------- */
 	include_once "random-splitter.php";
@@ -63,14 +64,14 @@
 			$tables['query_test'] = 'query_test';
 			$topN = $this->topN;
 
-			$this->rawDataProcessor->processRawData();
+			// $this->rawDataProcessor->processRawData();
 
 			foreach($this->splitters as $splitter){
 				$splitter->start_split();
 				$continue = true;
 				while($continue){ // split query into query train set and query test set
-					$continue = $splitter->split(); 
-
+					// $continue = $splitter->split(); 
+					$continue = false;
 					// train part
 					foreach($this->recommenders as $recommender){
 						$recommender->preprocess($tables);
@@ -81,7 +82,7 @@
 						$evaluator->start_evaluate();
 						$query_result = $this->dm->query("select * from query_test");
 						while($query_row = mysql_fetch_array($query_result)){
-							$items = $this->system->recommend($query_row['query']);
+							$items = $this->system->recommend($query_row['query'], $query_row['id']);
 							$recommendItems = array_slice($items, 0, $topN);
 							$evaluator->evaluate($query_row, $recommendItems);
 						}

@@ -6,6 +6,8 @@
 		private $test_count;
 		private $hit_count;
 		private $hit_threshold;
+		private $time_start;
+		private $time_end;
 
 		public function __construct($config){
 			$this->dm = GlassDatabaseManager::getInstance();
@@ -22,6 +24,7 @@
 			echo 'HitEvaluator start_evaluate<br/>';
 			flush();
 			ob_flush();
+			$this->time_start = microtime(true);
 
 			$this->test_count = 0;
 			$this->hit_count = 0;
@@ -34,13 +37,16 @@
 			$percentage = $this->hit_count / $this->test_count;
 			echo "test_count is {$this->test_count}, hit_count is {$this->hit_count}, hit percentage is $percentage <br />";
 
+			$this->time_end = microtime(true);
+			$cost_time = $this->time_end - $this->time_start;
 			echo 'HitEvaluator end_evaluate<br/>';
+			echo "cost time: $cost_time <br/>";
 			flush();
 			ob_flush();
 		}
 
 		public function evaluate($query, $recommendItems){
-			// echo "test start.....<br/>";
+			// echo "HitEvaluator evaluate start.....<br/>";
 			// flush();
 			// ob_flush();
 			// $time_start = microtime(true);
@@ -62,7 +68,7 @@
 
 			// $time_end = microtime(true);
 			// $cost_time = $time_end - $time_start;
-			// echo 'test end......<br/>';
+			// echo 'HitEvaluator evaluate end......<br/>';
 			// echo "cost time: $cost_time <br/>";
 			// flush();
 			// ob_flush();

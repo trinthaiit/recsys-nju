@@ -76,7 +76,7 @@ interface iKeywordRecommender {
      * @return : an array of Items
      * TODO: determine the specific format of Item to return
      */
-    public function recommend($keywords);
+    public function recommend($keywords, $queryId);
 
     public function cleanup();
 }
@@ -112,6 +112,6 @@ interface iKeywordRecommenderSystem {
     /**
      * Similar to that of iRecommender interface.
      */
-    public function recommend($keywords);
+    public function recommend($keywords, $queryId);
 }
 ?>

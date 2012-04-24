@@ -1,12 +1,15 @@
 <?php
+	include "class.stemmer.inc.php";
 	include_once "../interface/recsys-interface.php";
 
 	class GlassQueryExtractor implements iQueryExtractor{
 		private $params = array('q', 'p', 'query', 'wd', 'searchFor', 'text');
 		private $stopwords;
+		private $stemmer;
 
 		public function __construct(){
 			$this->stopwords = $this->__load_stopwords(__DIR__ . "/stopword.txt");
+			$this->stemmer = new Stemmer();
 		}
 
 		public function extractQuery($url, $delimiter = " "){
@@ -37,10 +40,11 @@
 		 */
 		private function __preprocess_keyword_string($keyword_string){
 			$keyword_string = preg_replace("/[,&\+\/-]/", ' ', $keyword_string);
-			$keys = preg_split('@ @', $keyword_string, NULL, PREG_SPLIT_NO_EMPTY);
+			$keys = preg_split('@ +@', $keyword_string, NULL, PREG_SPLIT_NO_EMPTY);
 			$result = array();
 			foreach($keys as $key){
 				if(!in_array($key, $this->stopwords)){
+					$key = $this->stemmer->stem($key);
 					// remove numeric string, I'm not sure whether it is proper
 					if($key != '' && !is_numeric($key)){
 						$result[] = $key;
