@@ -56,6 +56,7 @@
 			$this->iteration_count++;
 			assert('$this->iteration_count <= $this->k');
 
+			$this->dm->query("BEGIN");
 			//prepare database tables
 			$this->dm->query("drop table if exists query_train");
 			$this->dm->query("create table query_train like query");
@@ -75,6 +76,7 @@
 									({$query['id']}, '{$query['userId']}', '{$query['query']}')");
 				}
 			}
+			$this->dm->query("COMMIT");
 
 			if($this->iteration_count == $this->k){
 				return false; // no more iteration

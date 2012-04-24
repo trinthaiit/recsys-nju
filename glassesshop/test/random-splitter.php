@@ -49,6 +49,7 @@
 			ob_flush();
 			$time_start = microtime(true);
 
+			$this->dm->query("BEGIN");
 			assert('$this->trainPercentage + $this->testPercentage == 1');
 			// prepare database tables
 			$this->dm->query("drop table if exists query_train");
@@ -71,6 +72,7 @@
 								 values ({$test_query_row['id']}, '{$test_query_row['userId']}', '{$test_query_row['query']}')");
 				$this->dm->query("delete from query_train where id = {$test_query_row['id']}");
 			}
+			$this->dm->query("COMMIT");
 
 			$time_end = microtime(true);
 			$cost_time = $time_end - $time_start;
