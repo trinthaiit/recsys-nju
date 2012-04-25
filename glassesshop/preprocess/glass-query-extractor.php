@@ -43,8 +43,8 @@
 			$keys = preg_split('@ +@', $keyword_string, NULL, PREG_SPLIT_NO_EMPTY);
 			$result = array();
 			foreach($keys as $key){
+				$key = $this->stemmer->stem($key);
 				if(!in_array($key, $this->stopwords)){
-					$key = $this->stemmer->stem($key);
 					// remove numeric string, I'm not sure whether it is proper
 					if($key != '' && !is_numeric($key)){
 						$result[] = $key;

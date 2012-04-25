@@ -4,9 +4,10 @@
 	include_once "word-segmenter.php";
 	include_once "OpenSlopeOne.php";
 		
-	define("KEY_LINK_JACCARD",1);
-	define("KEY_COL_SLOPEONE",2);
-	define("KEY_LINK_COSINE", 3);
+	define("KEY_NO_EXPANSION", 0);
+	define("KEY_LINK_JACCARD", 1);
+	define("KEY_COL_SLOPEONE", 2);
+	define("KEY_LINK_COSINE",  3);
 
 	class KeywordRecommender implements iKeywordRecommender{
 		private $dm;
@@ -16,101 +17,94 @@
 		private $lock;
 		private $jaccard;
 		private $cosine;
+		private $expand_weight;
 		private $hottestItems;
-		private static $common_preprocess_done = false;
 
-		public function __construct($argArray = ''){
+		public function __construct($config){
 			$this->dm = GlassDatabaseManager::getInstance();
-			$this->name = $argArray['name'];
+			$this->name = $config['name'];
 			if($this->name == KEY_LINK_JACCARD){
-				if(isset($argArray['jaccard'])){
-					$this->jaccard = $argArray['jaccard'];
+				if(isset($config['jaccard'])){
+					$this->jaccard = $config['jaccard'];
 				}
 				else{
-					echo "warning: jaccard is not set<br />";
+					echo "warning: jaccard is not set <br/>";
 					$this->jaccard = 0.2;
 				}
 			}
 			else if($this->name == KEY_LINK_COSINE){
-				if(isset($argArray['cosine'])){
-					$this->cosine = $argArray['cosine'];
+				if(isset($config['cosine'])){
+					$this->cosine = $config['cosine'];
 				}
 				else{
-					echo "warning: cosine is not set<br />";
+					echo "warning: cosine is not set <br/>";
 					$this->cosine = 0.2;
 				}
 			}
-			else{
-				$this->jaccard = 0.2;
-				$this->cosine = 0.2;
+
+			if($this->name != KEY_NO_EXPANSION){
+				if(isset($config['expand_weight'])){
+					$this->expand_weight = $config['expand_weight'];
+					assert('$this->expand_weight > 0 && $this->expand_weight <= 1');
+				}
+				else{
+					echo "warning: expand_weight is not set <br/>";
+					$this->expand_weight = 0.1;
+				}
 			}
+
 			$this->lock = false;
 			$this->hottestItems = array();
 		}
-		
-		public function loadUserItem(){
-			$user_results = $this->dm->query("select * from keyword");
-			while($user_row = mysql_fetch_array($user_results)){
-				$this->user[$user_row['keyword']] = $user_row['id'];
-			}
-			$item_results = $this->dm->query("select * from item");
-			while($item_row = mysql_fetch_array($item_results)){
-				$this->item[$item_row['id']] = $item_row['name'];
-			}
-		}
-		
+
 		public function preprocess($tables, $startTime=null){
 			echo "KeywordRecommender_{$this->name} preprocess start.....<br/>";
 			flush();
 			ob_flush();
 			$time_start = microtime(true);
 
-			if(self::$common_preprocess_done == false){
-				$word_segmenter = new WordSegmenter();
-				$this->dm->executeSqlFile( __DIR__ . "/rec_tables.sql");
-						
-				/* Construct the keyword and keyword_item_weight table */
-				$keyword_item_count = array();
-				$query_results = $this->dm->query("select id, query from ".$tables['query']."");
-				$keyword_count = array();
-				while($query_row = mysql_fetch_array($query_results)){
-					$items = array();
-					$item_results = $this->dm->query("SELECT itemId FROM {$tables['query_item']} WHERE queryId = {$query_row['id']}");
-					while($item_row = mysql_fetch_array($item_results)){
-						$items[] = $item_row['itemId'];
-					}
-
-					$keywords = $word_segmenter->segmentWords($query_row['query']);
-					foreach ($keywords as $keyword) {
-						if(isset($keyword_count[$keyword])){
-							$keyword_count[$keyword] += 1;
-						}
-						else{
-							$keyword_count[$keyword] = 1;
-							$keyword_item_count[$keyword] = array();
-						}
-						foreach($items as $item){
-							if(!array_key_exists($item, $keyword_item_count[$keyword])){
-								$keyword_item_count[$keyword][$item] = 0;
-							}
-							$keyword_item_count[$keyword][$item] += 1;
-						}
-					}	
+			$word_segmenter = new WordSegmenter();
+			$this->dm->executeSqlFile( __DIR__ . "/rec_tables.sql");
+			
+			/* Construct the keyword and keyword_item_weight table */
+			$keyword_item_count = array();
+			$query_results = $this->dm->query("select id, query from ".$tables['query']."");
+			$keyword_count = array();
+			while($query_row = mysql_fetch_array($query_results)){
+				$items = array();
+				$item_results = $this->dm->query("SELECT itemId FROM {$tables['query_item']} WHERE queryId = {$query_row['id']}");
+				while($item_row = mysql_fetch_array($item_results)){
+					$items[] = $item_row['itemId'];
 				}
 
-				$this->dm->query("BEGIN");
-				foreach ($keyword_count as $key => $key_count) {
-					foreach($keyword_item_count[$key] as $item => $count){
-						$weight = $count / $key_count; 
-						$this->dm->query("INSERT INTO keyword_item_weight(keyword, item, weight) VALUE('{$key}',
-										'{$item}', '{$weight}')");
+				$keywords = $word_segmenter->segmentWords($query_row['query']);
+				foreach ($keywords as $keyword) {
+					if(isset($keyword_count[$keyword])){
+						$keyword_count[$keyword] += 1;
 					}
-					$this->dm->query("INSERT INTO keyword(keyword, count) VALUE ('{$key}', {$key_count})");
-				}
-				$this->dm->query("COMMIT");
-
-				self::$common_preprocess_done = true;
+					else{
+						$keyword_count[$keyword] = 1;
+						$keyword_item_count[$keyword] = array();
+					}
+					foreach($items as $item){
+						if(!array_key_exists($item, $keyword_item_count[$keyword])){
+							$keyword_item_count[$keyword][$item] = 0;
+						}
+						$keyword_item_count[$keyword][$item] += 1;
+					}
+				}	
 			}
+
+			$this->dm->query("BEGIN");
+			foreach ($keyword_count as $key => $key_count) {
+				foreach($keyword_item_count[$key] as $item => $count){
+					$weight = $count / $key_count; 
+					$this->dm->query("INSERT INTO keyword_item_weight(keyword, item, weight) VALUE('{$key}',
+									'{$item}', '{$weight}')");
+				}
+				$this->dm->query("INSERT INTO keyword(keyword, count) VALUE ('{$key}', {$key_count})");
+			}
+			$this->dm->query("COMMIT");
 
 			if($this->name == KEY_COL_SLOPEONE)
 				$this->collaborativeFilteringWithSlopeOnePreprocess();
@@ -126,8 +120,57 @@
 			flush();
 			ob_flush();
 		}
-		
-		public function wordAssociationWithCosinePreprocess($tables){
+
+		public function cleanup(){
+    		$this->dm->query("delete from keyword_item_weight");
+    		$this->dm->query("delete from keyword");
+    	}
+
+		public function recommend($keywords, $queryId){
+			$recommend_items = array();
+			if($this->name == KEY_NO_EXPANSION){
+				$recommend_items = $this->__recommend(KEY_NO_EXPANSION, $keywords, $queryId);
+			}
+			else if($this->name == KEY_LINK_JACCARD || $this->name == KEY_LINK_COSINE || $this->name == KEY_COL_SLOPEONE){
+				$recommend_items = $this->__recommend(KEY_NO_EXPANSION, $keywords, $queryId);
+				foreach($recommend_items as $item => $weight){
+					$recommend_items[$item] = $weight * (1 - $this->expand_weight);
+				}
+				$expand_recommend_items = $this->__recommend($this->name, $keywords, $queryId);
+				foreach($expand_recommend_items as $item => $weight){
+					if(isset($recommend_items[$item])){
+						$recommend_items[$item] += $this->expand_weight * $weight;
+					}
+					else{
+						$recommend_items[$item] = $this->expand_weight * $weight;
+					}
+				}
+			}
+			else{
+				echo "Dude, no such mode <br/>";
+				exit(-1);
+			}
+
+			if(count($recommend_items) < 20){
+				$recommend_items = $recommend_items + $this->addHotList();
+			}
+
+			arsort($recommend_items);
+			return $recommend_items;
+		}
+
+		private function loadUserItem(){
+			$user_results = $this->dm->query("select * from keyword");
+			while($user_row = mysql_fetch_array($user_results)){
+				$this->user[$user_row['keyword']] = $user_row['id'];
+			}
+			$item_results = $this->dm->query("select * from item");
+			while($item_row = mysql_fetch_array($item_results)){
+				$this->item[$item_row['id']] = $item_row['name'];
+			}
+		}
+
+		private function wordAssociationWithCosinePreprocess($tables){
 			$matrix = array();
 			$keywords = array();
 			$items = array();
@@ -189,7 +232,7 @@
 			$this->dm->query("COMMIT");
 		}
 
-		public function cosineSimilaritySimplified($key1, $key2, $keyword_item_count){
+		private function cosineSimilaritySimplified($key1, $key2, $keyword_item_count){
 			// $common_item_count_result = $this->dm->query("SELECT count(*) FROM keyword_item_weight WHERE keyword = '{$key1}' AND
 			// 					item IN (SELECT item FROM keyword_item_weight WHERE keyword = '{$key2}')");
 			// $common_item_count_row = mysql_fetch_array($common_item_count_result);
@@ -208,7 +251,7 @@
 			// return $key1_item_count * $key2_item_count != 0 ? $common_item_count / sqrt($key1_item_count * $key2_item_count) : 0;
 		}
 
-		public function cosineSimilarity($vector1, $vector2){
+		private function cosineSimilarity($vector1, $vector2){
 			assert('count($vector1) == count($vector2)');
 			$a = $b = $c = 0;
 			for($i = 0; $i < count($vector1); $i++){
@@ -220,7 +263,7 @@
 			return $b * $c != 0 ? $a / sqrt($b * $c) : 0;
 		}
 
-		public function wordAssociationWithJaccardPreprocess($tables){
+		private function wordAssociationWithJaccardPreprocess($tables){
 			$this->dm->query("BEGIN");
 			$this->dm->query("truncate keyword_link");
 			$result = $this->dm->query("SELECT keyword,count FROM keyword where count > 1");
@@ -252,7 +295,7 @@
 			$this->dm->query("COMMIT");
 		}
 		
-		public function collaborativeFilteringWithSlopeOnePreprocess(){
+		private function collaborativeFilteringWithSlopeOnePreprocess(){
 			$this->dm->executeSqlFile(__DIR__ . "\col_table.sql");
 			
 			$item = array();
@@ -274,120 +317,95 @@
 			
 			$openslopeone = new OpenSlopeOne();
 			$openslopeone->initSlopeOneTable('MySQL');
-		}
-		
-		public function makeCombineRecList($keywords){
-			$weightArray = array();
-			
-	    	if($this->name == KEY_LINK_JACCARD){
-				$expand_keywords = KeywordRecommender::fetch_expand_key($keywords);
-				foreach ($expand_keywords as $expand_key) {
-					$expand_weight = KeywordRecommender::fetch_product_weight($expand_key);
-					foreach($expand_weight as $p_name => $p_weight){
-						if(isset($weightArray[$p_name]))
-							$weightArray[$p_name] += $p_weight;
-						else
-							$weightArray[$p_name] = $p_weight;
-					}
-				}
-				if(count($weightArray) < 20)
-					$weightArray = $weightArray + $this->addHotList();
-				arsort($weightArray);
-				return $weightArray;				
-			}
-			else if($this->name == KEY_LINK_COSINE){
-				$keywords = array_unique(explode(' ', $keywords));
-				$expand_keywords = array();
-				foreach ($keywords as $key){
-					$expand_results = $this->dm->query("select keyword_expand from keyword_cosine_link where keyword = '{$key}'");
-					while($expand_row = mysql_fetch_array($expand_results)){
-						if(!in_array($expand_row[0], $keywords))
-							$expand_keywords[] = $expand_row[0];
-					}
-				}
-				$expand_keywords = array_unique($expand_keywords);
-				foreach($expand_keywords as $expand_key){
-					$expand_weight = $this->fetch_product_weight($expand_key);
-					foreach($expand_weight as $p_name => $p_weight){
-						if(isset($weightArray[$p_name])){
-							$weightArray[$p_name] += $p_weight;
-						}
-						else{
-							$weightArray[$p_name] = $p_weight;
-						}
-					}
-				}
-				if(count($weightArray) < 20)
-					$weightArray = $weightArray + $this->addHotList();
-				arsort($weightArray);
-				return $weightArray;
-			}
-			else if($this->name == KEY_COL_SLOPEONE){
-				if($this->lock == false)
-					$this->loadUserItem();
-				$this->lock = true;
-				$keywords = array_unique(explode(' ', $keywords));
-				$openslopeone = new OpenSlopeOne();
-		
-				foreach ($keywords as $key){
-					if(key_exists($key, $this->user)){
-						$weightArrayTemp = $openslopeone->getRecommendedItemsByUser($this->user[$key]);
-						if($weightArrayTemp != NULL){
-							foreach($weightArrayTemp as $p_name => $p_weight){
-								if(isset($weightArray[$this->item[$p_name]]))
-									$weightArray[$this->item[$p_name]] += $p_weight;
-								else
-									$weightArray[$this->item[$p_name]] = $p_weight;
-							}
-						}
-					}
-				}
-				arsort($weightArray);
-				return $weightArray;
-			}
-			else{	
-				if(!get_magic_quotes_gpc()){
-					$keywords = addslashes($keywords);		
-					$keywords = array_unique(explode(' ', $keywords));
-					
-					foreach ($keywords as $key){
-						$product_temp = KeywordRecommender::fetch_product_weight($key);
-						foreach($product_temp as $p_name => $p_weight){
-							if(isset($weightArray[$p_name]))
-								$weightArray[$p_name] += $p_weight;
-							else
-								$weightArray[$p_name] = $p_weight;
-						}
-					}
-					if(count($weightArray) < 20)
-						$weightArray = $weightArray+$this->addHotList();
-					arsort($weightArray);
-					return $weightArray;
-				}
-			}
-	    }
-	    
-	    public function addHotList(){
-	    	if(empty($this->hottestItems)){
-		   		$item_result = $this->dm->query(" SELECT pageinfo item, count(id) item_count FROM visit WHERE pagetype = 'product' AND pageinfo <> '' AND userId NOT IN (SELECT userId FROM query_test) GROUP BY pageinfo ORDER BY count(id) DESC ");
-				while($item_row = mysql_fetch_array($item_result)){
-					$this->hottestItems[$item_row['item']] = 0;
-				}
-	    	}
-			return $this->hottestItems;
-	    }
-		
-    	public function recommend($keywords, $queryId){
-		    return KeywordRecommender::makeCombineRecList($keywords);
-    	}
 
-    	public function cleanup(){
-    		$this->dm->query("delete from keyword_item_weight");
-    		$this->dm->query("delete from keyword");
-    		
+			$this->lock = false;
+		}
+
+		private function __recommend($mode, $keywords, $queryId){
+		    $weightArray = array();
+		    if($mode == KEY_NO_EXPANSION){
+		    	if(!get_magic_quotes_gpc()){
+		    		$keywords = addslashes($keywords);		
+		    		$keywords = array_unique(explode(' ', $keywords));
+		    		
+		    		foreach ($keywords as $key){
+		    			$product_temp = KeywordRecommender::fetch_product_weight($key);
+		    			foreach($product_temp as $p_name => $p_weight){
+		    				if(isset($weightArray[$p_name]))
+		    					$weightArray[$p_name] += $p_weight;
+		    				else
+		    					$weightArray[$p_name] = $p_weight;
+		    			}
+		    		}
+
+		    		return $weightArray;
+		    	}
+		    }
+		    else if($mode == KEY_LINK_JACCARD){
+		    	$expand_keywords = KeywordRecommender::fetch_expand_key($keywords);
+		    	foreach ($expand_keywords as $expand_key) {
+		    		$expand_weight = KeywordRecommender::fetch_product_weight($expand_key);
+		    		foreach($expand_weight as $p_name => $p_weight){
+		    			if(isset($weightArray[$p_name]))
+		    				$weightArray[$p_name] += $p_weight;
+		    			else
+		    				$weightArray[$p_name] = $p_weight;
+		    		}
+		    	}
+		    	
+		    	return $weightArray;
+		    }
+		    else if($mode == KEY_LINK_COSINE){
+		    	$keywords = array_unique(explode(' ', $keywords));
+		    	$expand_keywords = array();
+		    	foreach ($keywords as $key){
+		    		$expand_results = $this->dm->query("select keyword_expand from keyword_cosine_link where keyword = '{$key}'");
+		    		while($expand_row = mysql_fetch_array($expand_results)){
+		    			if(!in_array($expand_row[0], $keywords))
+		    				$expand_keywords[] = $expand_row[0];
+		    		}
+		    	}
+		    	$expand_keywords = array_unique($expand_keywords);
+		    	foreach($expand_keywords as $expand_key){
+		    		$expand_weight = $this->fetch_product_weight($expand_key);
+		    		foreach($expand_weight as $p_name => $p_weight){
+		    			if(isset($weightArray[$p_name])){
+		    				$weightArray[$p_name] += $p_weight;
+		    			}
+		    			else{
+		    				$weightArray[$p_name] = $p_weight;
+		    			}
+		    		}
+		    	}
+
+		    	return $weightArray;
+		    }
+		    else if($mode == KEY_COL_SLOPEONE){
+		    	if($this->lock == false)
+		    		$this->loadUserItem();
+		    	$this->lock = true;
+		    	$keywords = array_unique(explode(' ', $keywords));
+		    	$openslopeone = new OpenSlopeOne();
+		    	
+		    	foreach ($keywords as $key){
+		    		if(key_exists($key, $this->user)){
+		    			$weightArrayTemp = $openslopeone->getRecommendedItemsByUser($this->user[$key]);
+		    			if($weightArrayTemp != NULL){
+		    				foreach($weightArrayTemp as $p_name => $p_weight){
+		    					if(isset($weightArray[$this->item[$p_name]]))
+		    						$weightArray[$this->item[$p_name]] += $p_weight;
+		    					else
+		    						$weightArray[$this->item[$p_name]] = $p_weight;
+		    				}
+		    			}
+		    		}
+		    	}
+
+		    	return $weightArray;
+		    }
     	}
     	
-		public function fetch_expand_key($str){
+		private function fetch_expand_key($str){
 	    	$this->dm->query("BEGIN");
 	    	$keywords = array_unique(explode(' ', $str));
 	    	$expand_keywords = array();
@@ -405,16 +423,22 @@
 	    	return $expand_keywords;
 	    }
 
-    	public function fetch_product_weight($str){
-    		
+    	private function fetch_product_weight($str){
 			$product = array();
 			$result = $this->dm->query("select * from keyword_item_weight where keyword = '".$str."'");
 			while ($row = mysql_fetch_array($result)){
-				if(isset($product[$row['item']]))
-					$product[$row['item']] += $row['weight'];
-				else
-					$product[$row['item']] = $row['weight'];
+				$product[$row['item']] = $row['weight'];
 			}
 			return $product;
 		}
+
+		private function addHotList(){
+	    	if(empty($this->hottestItems)){
+		   		$item_result = $this->dm->query(" SELECT pageinfo item, count(id) item_count FROM visit WHERE pagetype = 'product' AND pageinfo <> '' AND userId NOT IN (SELECT userId FROM query_test) GROUP BY pageinfo ORDER BY count(id) DESC ");
+				while($item_row = mysql_fetch_array($item_result)){
+					$this->hottestItems[$item_row['item']] = 0;
+				}
+	    	}
+			return $this->hottestItems;
+	    }
 	}

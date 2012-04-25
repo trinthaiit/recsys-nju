@@ -1,9 +1,11 @@
 <?php
+	include_once "keyword-recommender.php";
 	include_once "../interface/recsys-interface.php";
 	include_once "../database/glass-database-manager.php";
 
 	class FPTreeRecommender implements iKeywordRecommender{
 		private $dm;
+		private $keyword_recommender;
 		private $query_array; // an array contains all querys, each query is an array of keyword id. For example [[1, 2, 3][3, 4][1, 2][0, 5]]
 		private $min_support;
 		private $fplists;
@@ -11,6 +13,10 @@
 
 		public function __construct($config){
 			$this->dm = GlassDatabaseManager::getInstance();
+			$this->keyword_recommender = new KeywordRecommender(array(
+				'name' => '',
+				'jaccard' => 0.001,
+			));
 			$this->min_support = $config['min_support'];
 
 			if(!isset($this->min_support)){
@@ -23,11 +29,16 @@
 		}
 
 		public function preprocess($tables, $startTime = null){
+			echo "FPTreeRecommender preprocess start.....<br/>";
+			flush();
+			ob_flush();
+			$time_start = microtime(true);
 
 			// create necessary tables
 			$this->dm->executeSqlFile(__DIR__ . '\fptree-tables.sql');
 
 			// construct $this->query_array
+			$this->dm->query("BEGIN");
 			$querys_result = $this->dm->query("SELECT id, query FROM {$tables['query']}");
 			while($query_row = mysql_fetch_array($querys_result)){
 				$query = $query_row['query'];
@@ -52,8 +63,10 @@
 				}
 				$this->query_array[$query_row['id']] = $keyword_array;
 			}
+			$this->dm->query("COMMIT");
 
 			// sort $this->query_array and remove infrequent keyword
+			$this->dm->query("BEGIN");
 			foreach($this->query_array as $id => $query){
 				$keywordId_count = array();
 				$keyword_count = array();
@@ -86,6 +99,7 @@
 					unset($this->query_array[$id]);
 				}
 			}
+			$this->dm->query("COMMIT");
 
 			// build fp-tree
 			$parent_link = array();
@@ -187,6 +201,16 @@
 			while($item_row = mysql_fetch_array($item_result)){
 				$this->hottestItems[$item_row['item']] = $item_row['item_count']; // use count as weight, sort is handled by DBMS
 			}
+
+			// keyword-recommender preprocess
+			$this->keyword_recommender->preprocess($tables);
+
+			$time_end = microtime(true);
+			$cost_time = $time_end - $time_start;
+			echo "FPTreeRecommender preprocess end.....<br/>";
+			echo "cost time: $cost_time <br/>";
+			flush();
+			ob_flush();
 		}
 
 		private function mine($fplists){
@@ -277,6 +301,7 @@
 		}
 
 		public function recommend($keywords, $queryId){
+			$origin_keywords = $keywords;
 			$recommend_items = array();
 			$keywords = array_unique(preg_split('@ +@', $keywords, NULL, PREG_SPLIT_NO_EMPTY));
 			$keywords_string_represent = "('" . implode("','", $keywords) .  "')";
@@ -295,24 +320,34 @@
 						$query = '';
 						foreach($permutation as $index){
 							$query .= $keywords[$index];
+							$query .= ' ';
 						}
-						$item_result = $this->dm->query("SELECT item FROM fptree_frequent_query_item_weight
+						$query = substr_replace($query, "", -1);
+
+						$item_total_count_result = $this->dm->query("SELECT SUM(weight) FROM fptree_frequent_query_item_weight
+														WHERE frequent_query = '{$query}'");
+						$item_total_count_row = mysql_fetch_array($item_total_count_result);
+						$item_total_count = $item_total_count_row['SUM(weight)'];
+
+						$item_result = $this->dm->query("SELECT item, weight FROM fptree_frequent_query_item_weight
 														 WHERE frequent_query = '{$query}' ORDER BY weight DESC");
 						while($item_row = mysql_fetch_array($item_result)){
 							if(!array_key_exists($item_row['item'], $recommend_items)){
-								$recommend_items[$item_row['item']] = 1 ;
+								$recommend_items[$item_row['item']] = 0;
 							}
+							$recommend_items[$item_row['item']] +=  $item_row['weight'] / $item_total_count;
 						}
 					}
 				}
 			}
-			if(count($recommend_items) < 20){
-				foreach($this->hottestItems as $item => $weight){
-					if(!array_key_exists($item, $recommend_items)){
-						$recommend_items[$item] = 1;
-					}
+			
+			foreach($this->keyword_recommender->recommend($origin_keywords, $queryId) as $item => $weight){
+				if(!array_key_exists($item, $recommend_items)){
+					$recommend_items[$item] = 0;
 				}
+				$recommend_items[$item] += $weight;
 			}
+			arsort($recommend_items);
 			return $recommend_items;
 		}
 

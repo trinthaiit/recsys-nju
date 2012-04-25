@@ -70,13 +70,13 @@
 				$splitter->start_split();
 				$continue = true;
 				while($continue){ // split query into query train set and query test set
-					// $continue = $splitter->split(); 
-					$continue = false;
+					$continue = $splitter->split(); 
+					// $continue = false;
 					// train part
 					foreach($this->recommenders as $recommender){
 						$recommender->preprocess($tables);
 					}
-
+					
 					// test part
 					foreach($this->evaluators as $evaluator){
 						$evaluator->start_evaluate();

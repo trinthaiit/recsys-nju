@@ -29,21 +29,13 @@
 		}
 	
 		public function recommend($keywords, $queryId){
-			// pseudo-code
-			//$recommendItems = array(); // each element is an array, stands for each recommender's recommend
-			$finalRecList = array();
+			assert('count($this->recommenders) == 1');
+
 			foreach($this->recommenders as $name=>$recommender){
-				//$recommendItems[] = $recommender->recommend($keywords);
-				$weightArrayTemp = $recommender->recommend($keywords, $queryId);
-				foreach($weightArrayTemp as $p_name => $p_weight){
-					if(isset($finalRecList[$p_name]))
-						$finalRecList[$p_name] += $p_weight*$this->weights[$name];
-					else
-						$finalRecList[$p_name] = $p_weight*$this->weights[$name];
-				}
+				$recommend_items = $recommender->recommend($keywords, $queryId);
 			}
-			//print_r($finalRecList);
-			return $finalRecList;
+			
+			return $recommend_items;
 		}
 	}
 	
