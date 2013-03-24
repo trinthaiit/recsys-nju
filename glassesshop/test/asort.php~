@@ -1,5 +1,0 @@
-<?php
-$a = array('a'=>3,'b'=>4,'c'=>1,'d'=>2);
-asort($a);
-print_r($a);
-?>
