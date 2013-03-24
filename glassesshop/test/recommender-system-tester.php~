@@ -100,20 +100,20 @@
 					}
 					
 					// test part
-//					foreach($this->evaluators as $evaluator){
-//						$evaluator->start_evaluate();
-//						$query_result = $this->dm->query("select * from query_test");
-//						while($query_row = mysql_fetch_array($query_result)){
-//							$items = $this->system->recommend($query_row['query'], $query_row['id']);
-//							$recommendItems = array_slice($items, 0, $topN);
-//							$evaluator->evaluate($query_row, $recommendItems);
-//						}
-//						$evaluator->end_evaluate();
-//					}
-//
-//					foreach($this->recommenders as $recommender){
-//						//$recommender->cleanup();
-//					}
+					foreach($this->evaluators as $evaluator){
+						$evaluator->start_evaluate();
+						$query_result = $this->dm->query("select * from query_test");
+						while($query_row = mysql_fetch_array($query_result)){
+							$items = $this->system->recommend($query_row['query'], $query_row['id']);
+							$recommendItems = array_slice($items, 0, $topN);
+							$evaluator->evaluate($query_row, $recommendItems);
+						}
+						$evaluator->end_evaluate();
+					}
+
+					foreach($this->recommenders as $recommender){
+						//$recommender->cleanup();
+					}
 
                     $round++;
                     $this->statistics();

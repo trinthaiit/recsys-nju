@@ -68,7 +68,6 @@
 			
 			/* Construct the keyword and keyword_item_weight table */
 			$keyword_item_count = array();
-            $item_keyword_count = array();
 			$query_results = $this->dm->query("select id, query from ".$tables['query']."");
 			$keyword_count = array();
 			while($query_row = mysql_fetch_array($query_results)){
@@ -76,9 +75,6 @@
 				$item_results = $this->dm->query("SELECT itemId FROM {$tables['query_item']} WHERE queryId = {$query_row['id']}");
 				while($item_row = mysql_fetch_array($item_results)){
 					$items[] = $item_row['itemId'];
-                    $item = $item_row['itemId'];
-                    if(!array_key_exists($item, $item_keyword_count))
-                        $item_keyword_count[$item] = array();
 				}
 
 				$keywords = $word_segmenter->segmentWords($query_row['query']);
@@ -95,11 +91,6 @@
 							$keyword_item_count[$keyword][$item] = 0;
 						}
 						$keyword_item_count[$keyword][$item] += 1;
-
-						if(!array_key_exists($keyword, $item_keyword_count[$item])){
-							$item_keyword_count[$item][$keyword] = 0;
-						}
-						$item_keyword_count[$item][$keyword] += 1;
 					}
 				}	
 			}
@@ -111,12 +102,11 @@
             $items_count = $temp_row[0];
 
 			foreach ($keyword_count as $key => $key_count) {
-                //$all_count = array_sum($keyword_item_count[$key]);
+                $all_count = array_sum($keyword_item_count[$key]);
                 $related_items_count = count($keyword_item_count[$key]);
                 $iif = log($items_count / $related_items_count);
 
 				foreach($keyword_item_count[$key] as $item => $count){
-                    $all_count = array_sum($item_keyword_count[$item]);
 					//$weight = $count / $key_count; 
                     $weight = ($count / $all_count) * $iif;
                     //$weight = $count * $iif;

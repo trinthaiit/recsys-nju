@@ -74,12 +74,12 @@
 			// you can add more splitters
 		),
 		'evaluators' => array(
-//			'key1' => array(
-//				'name' => 'HitEvaluator',
-//				'config' => array(
-//					'hit_threshold' => 1,
-//				),
-//			),
+			'key1' => array(
+				'name' => 'HitEvaluator',
+				'config' => array(
+					'hit_threshold' => 1,
+				),
+			),
 			'key2' => array(
 				'name' => 'ConfusionMatrixEvaluator',
 				'config' => array(),

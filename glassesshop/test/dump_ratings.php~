@@ -1,0 +1,11 @@
+<?php
+	include_once "../database/glass-database-manager.php";
+    $dm = GlassDatabaseManager::getInstance();
+
+    $result = $dm->query("Select keyword, item, weight From keyword_item_weight;");
+    $fp = fopen('ratings.csv', 'w');
+    while($row = mysql_fetch_array($result)) {
+        fwrite($fp, "{$row['keyword']},{$row['item']},{$row['weight']}\n");
+    }
+    fclose($fp);
+?>

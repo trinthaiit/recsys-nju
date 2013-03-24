@@ -12,7 +12,7 @@
 		}
 
 		private function __construct(){
-			$this->connect("localhost", "root", "yaojiajun"); // connect database
+			$this->connect("localhost", "root", "1990YjW0923"); // connect database
 			$this->useDatabase("glassesshop"); // use "glassesshop" database
 		}
 	}
